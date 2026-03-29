@@ -30,7 +30,7 @@ const Home = () => {
         texto_1="text-2xl md:text-3xl lg:text-4xl"
         texto_2="text-2xl md:text-2xl lg:text-3xl"
       />
-      <SeccionTestimonios />
+      {/* <SeccionTestimonios /> */}
       <Ubication />
     </div>
   );

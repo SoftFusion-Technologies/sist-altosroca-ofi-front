@@ -1,220 +1,384 @@
-import React from "react";
-import { motion } from "framer-motion";
-import ParticlesBackground from "./ParticlesBackground";
-import { FaDumbbell, FaUsers, FaAward } from "react-icons/fa";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { NavLink } from 'react-router-dom';
+import ParticlesBackground from './ParticlesBackground';
+import {
+  FaDumbbell,
+  FaUsers,
+  FaAward,
+  FaArrowRight,
+  FaCheckCircle,
+  FaFireAlt
+} from 'react-icons/fa';
 
-// Variants para el pop-up y el stagger del FeaturesSection
-const container = {
-  hidden: {},
+/*
+ * Programador: Benjamin Orellana
+ * Fecha Creación: 28 / 03 / 2026
+ * Versión: 3.0
+ *
+ * Descripción:
+ * Rediseño completo de la sección Features para Altos Roca Gym.
+ * Se reemplaza la grilla clásica por una composición moderna tipo mosaic,
+ * con fondo inmersivo rojo/negro, continuidad visual con el hero, cards
+ * premium animadas y mejor jerarquía responsive.
+ *
+ * Tema: Features Section - Landing pública
+ * Capa: Frontend
+ */
+
+const containerV = {
+  hidden: { opacity: 0, y: 24 },
   show: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.6 },
-  },
+    opacity: 1,
+    y: 0,
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.08
+    }
+  }
 };
 
-const pop = {
-  hidden: { opacity: 0, y: 18, scale: 0.98 },
+const itemV = {
+  hidden: { opacity: 0, y: 22, scale: 0.985 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 260, damping: 20, mass: 0.6 },
-  },
+    transition: {
+      type: 'spring',
+      stiffness: 120,
+      damping: 16
+    }
+  }
 };
-
 
 const FeaturesSection = () => {
   const features = [
     {
-      icon: <FaDumbbell size={28} />,
-      title: "Equipamiento Moderno",
-      description: "Máquinas de última generación con mantenimiento al día.",
+      id: 'equipamiento',
+      icon: <FaDumbbell size={24} />,
+      title: 'Equipamiento y espacios',
+      description:
+        'Máquinas, zonas de trabajo y un entorno pensado para entrenar con energía, orden y continuidad.',
+      badge: 'Infraestructura',
+      accent: 'from-red-700 via-red-500 to-red-400',
+      glow: 'shadow-[0_0_28px_rgba(239,68,68,0.14)]',
+      points: ['Espacios bien distribuidos', 'Entrenamiento más cómodo'],
+      className: 'md:col-span-2 xl:col-span-2'
     },
     {
-      icon: <FaUsers size={28} />,
-      title: "Comunidad Activa",
-      description: "Ambiente enfocado, respeto por el proceso y progreso real.",
+      id: 'comunidad',
+      icon: <FaUsers size={24} />,
+      title: 'Comunidad activa',
+      description:
+        'Un ambiente real, con actitud, constancia y gente que vive el movimiento en serio.',
+      badge: 'Ambiente',
+      accent: 'from-red-800 via-rose-500 to-orange-400',
+      glow: 'shadow-[0_0_28px_rgba(244,63,94,0.12)]',
+      points: ['Motivación compartida', 'Experiencia más humana'],
+      className: 'md:col-span-1 xl:col-span-1'
     },
     {
-      icon: <FaAward size={28} />,
-      title: "Coaches Certificados",
-      description: "Metodologías probadas y seguimiento técnico cercano.",
-    },
+      id: 'coaches',
+      icon: <FaAward size={24} />,
+      title: 'Acompañamiento real',
+      description:
+        'Seguimiento técnico, criterio y un enfoque más claro para que progreses con sentido.',
+      badge: 'Coaching',
+      accent: 'from-zinc-700 via-red-500 to-zinc-300',
+      glow: 'shadow-[0_0_28px_rgba(161,161,170,0.12)]',
+      points: ['Corrección y guía', 'Mejor toma de decisiones'],
+      className: 'md:col-span-1 xl:col-span-1'
+    }
   ];
 
+  const discFondo = encodeURIComponent(`
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>
+      <g fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='2'>
+        <circle cx='60' cy='60' r='44'/>
+        <circle cx='60' cy='60' r='28'/>
+        <circle cx='60' cy='60' r='10'/>
+      </g>
+      <g stroke='rgba(239,68,68,0.10)' stroke-width='1.4'>
+        <line x1='60' y1='8' x2='60' y2='22'/>
+        <line x1='60' y1='98' x2='60' y2='112'/>
+        <line x1='8' y1='60' x2='22' y2='60'/>
+        <line x1='98' y1='60' x2='112' y2='60'/>
+      </g>
+    </svg>
+  `);
+
+  const mancuernaSvg = encodeURIComponent(`
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+      <g fill='none' stroke='rgba(255,255,255,0.78)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'>
+        <line x1='10' y1='32' x2='54' y2='32'/>
+        <rect x='6' y='24' width='6' height='16' rx='2' ry='2' fill='rgba(239,68,68,0.15)' stroke='rgba(255,255,255,0.58)'/>
+        <rect x='12' y='26' width='6' height='12' rx='2' ry='2' fill='rgba(255,255,255,0.08)'/>
+        <rect x='52' y='24' width='6' height='16' rx='2' ry='2' fill='rgba(239,68,68,0.15)' stroke='rgba(255,255,255,0.58)'/>
+        <rect x='46' y='26' width='6' height='12' rx='2' ry='2' fill='rgba(255,255,255,0.08)'/>
+      </g>
+    </svg>
+  `);
+
+  const chips = ['Gym', 'Fútbol', 'Pádel', 'Comunidad', 'Progreso'];
+
   return (
-    <section className="relative isolate overflow-hidden bg-black pt-24 pb-28 px-6 -mt-8">
-      {/* DIVISOR entre Hero y Features (onda metálica) */}
-      <div className="absolute -top-12 left-0 w-full h-12" aria-hidden>
-        <svg
-          viewBox="0 0 1440 120"
-          preserveAspectRatio="none"
-          className="w-full h-full"
-        >
-          <path
-            d="M0,120 C300,0 1140,240 1440,60 L1440,120 L0,120 Z"
-            fill="url(#silverGrad)"
-          />
-          <defs>
-            <linearGradient id="silverGrad" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="#e5e7eb" stopOpacity="0.10" />
-              <stop offset="0.5" stopColor="#9ca3af" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#d1d5db" stopOpacity="0.10" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      {/* CAPAS: aurora + grid + noise para continuidad con el Hero */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 blur-2xl opacity-60"
-      >
-        <div className="absolute -top-24 -left-24 size-[32rem] rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,rgba(59,130,246,0.10),rgba(6,182,212,0.08),rgba(99,102,241,0.08),transparent,rgba(6,182,212,0.08))]" />
-        <div className="absolute -bottom-16 -right-20 size-[36rem] rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.05),transparent_60%)]" />
-      </div>
-
-      {/* grid sutil con máscara central */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.22]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.05) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-          WebkitMaskImage:
-            "radial-gradient(60% 50% at 50% 40%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 100%)",
-          maskImage:
-            "radial-gradient(60% 50% at 50% 40%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 100%)",
-        }}
-      />
-      {/* noise para textura */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-soft-light"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0, rgba(255,255,255,.35) 1px, transparent 1px, transparent 3px)",
-        }}
-      />
-
+    <section className="relative isolate overflow-hidden bg-black text-white py-20 sm:py-24 lg:py-28">
       <ParticlesBackground />
 
-      <div className="mx-auto max-w-6xl relative z-10">
-        {/* Header */}
-        <motion.div
-          variants={pop}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
-          className="mb-14 text-center"
-        >
-          <h2 className="text-white text-3xl md:text-4xl font-bold tracking-tight">
-            Entrenamiento Redefinido
-          </h2>
-          <p className="text-gray-300 mt-3">
-            Tecnología, diseño y metodología al servicio de tu mejor versión.
-          </p>
-        </motion.div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.16),transparent_24%),linear-gradient(180deg,#050505_0%,#09090b_45%,#040404_100%)]" />
 
-        {/* Grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.35 }}
-          className="grid gap-8 md:grid-cols-3 [perspective:1200px]"
-        >
-          {features.map((f) => (
-            <motion.article
-              key={f.title}
-              variants={pop}
-              className="
-                group relative rounded-2xl
-                bg-neutral-900/90
-                border border-neutral-800
-                px-6 pt-10 pb-8
-                shadow-[0_12px_40px_rgba(0,0,0,0.45)]
-                [transform-style:preserve-3d]
-                overflow-hidden
-                motion-reduce:transform-none motion-reduce:transition-none
-              "
-              whileHover={{ rotateX: -6, rotateY: 6, y: -8 }}
-              whileTap={{ scale: 0.995 }}
-              transition={{
-                type: "spring",
-                stiffness: 180,
-                damping: 18,
-                mass: 0.6,
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml;utf8,${discFondo}")`,
+          backgroundSize: '180px 180px',
+          backgroundRepeat: 'repeat',
+          maskImage:
+            'radial-gradient(circle at center, rgba(0,0,0,1) 34%, rgba(0,0,0,0.18) 74%, transparent 100%)',
+          WebkitMaskImage:
+            'radial-gradient(circle at center, rgba(0,0,0,1) 34%, rgba(0,0,0,0.18) 74%, transparent 100%)'
+        }}
+      />
+
+      <div className="pointer-events-none absolute -top-16 -left-20 h-[28rem] w-[28rem] rounded-full bg-red-600/18 blur-3xl" />
+      <div className="pointer-events-none absolute top-[24%] -right-16 h-[30rem] w-[30rem] rounded-full bg-red-500/14 blur-3xl" />
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px)',
+          backgroundSize: '42px 42px'
+        }}
+      />
+
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-[28%] size-[60vmin] max-h-[560px] max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+        <div className="absolute left-1/2 top-[28%] size-[44vmin] max-h-[420px] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-red-500/14" />
+
+        <div className="absolute left-1/2 top-[28%] size-[60vmin] max-h-[560px] max-w-[560px] -translate-x-1/2 -translate-y-1/2 animate-[orbit_28s_linear_infinite]">
+          {[
+            'left-1/2 top-0 -translate-x-1/2 -translate-y-1/2',
+            'right-0 top-1/2 translate-x-1/2 -translate-y-1/2',
+            'left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2',
+            'left-0 top-1/2 -translate-x-1/2 -translate-y-1/2'
+          ].map((position, index) => (
+            <div
+              key={`outer-${index}`}
+              className={`absolute ${position}`}
+              style={{
+                width: '38px',
+                height: '38px',
+                backgroundImage: `url("data:image/svg+xml;utf8,${mancuernaSvg}")`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                filter: 'drop-shadow(0 0 12px rgba(239,68,68,0.18))'
               }}
-            >
-              {/* Caras isométricas (ahora plata, no sky) */}
-              <span
-                aria-hidden
-                className="
-                  absolute inset-0 -z-10 rounded-2xl
-                  before:content-[''] before:absolute before:-top-2 before:left-2
-                  before:w-[calc(100%-4px)] before:h-3 before:rounded-t-2xl
-                  before:bg-gradient-to-r before:from-gray-500/30 before:to-gray-300/30
-                  before:blur-[1px]
-                  after:content-[''] after:absolute after:-left-2 after:top-2
-                  after:w-3 after:h-[calc(100%-4px)] after:rounded-l-2xl
-                  after:bg-gradient-to-b after:from-gray-500/30 after:to-gray-300/30
-                  after:blur-[1px]
-                "
-              />
-
-              {/* Corte diagonal */}
-              <span
-                aria-hidden
-                className="
-                  absolute -right-6 -top-6 size-16 rotate-45
-                  bg-gradient-to-br from-neutral-800 to-neutral-900
-                  border border-neutral-700
-                "
-              />
-
-              {/* Borde activo sutil en hover (plata) */}
-              <span
-                aria-hidden
-                className="
-                  pointer-events-none absolute inset-0 rounded-2xl
-                  ring-0 ring-gray-300/0 group-hover:ring-1 group-hover:ring-gray-300/30
-                  transition-all duration-300
-                "
-              />
-
-              {/* Icono en rombo (flotante) */}
-              <motion.div
-                whileHover={{ y: -4 }}
-                transition={{ type: "spring", stiffness: 250, damping: 16 }}
-                className="
-                  mx-auto grid place-items-center size-16
-                  rotate-45 rounded-xl
-                  bg-gradient-to-br from-neutral-800 to-neutral-900
-                  border border-neutral-700
-                  shadow-[0_10px_30px_rgba(0,0,0,0.35)]
-                "
-                style={{ transform: "translateZ(40px) rotate(45deg)" }}
-              >
-                <div className="-rotate-45 text-gray-200 group-hover:text-gray-100 transition-colors duration-300">
-                  {f.icon}
-                </div>
-              </motion.div>
-
-              {/* titulo y descripcion */}
-              <h3 className="mt-6 text-white text-xl font-semibold tracking-tight">
-                {f.title}
-              </h3>
-              <p className="mt-2 text-gray-300 leading-relaxed">
-                {f.description}
-              </p>
-
-              {/* Linea base (acento plata) */}
-              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400 opacity-40 group-hover:opacity-70 transition-opacity duration-300 rounded-b-2xl" />
-            </motion.article>
+            />
           ))}
+        </div>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          variants={containerV}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          <motion.div
+            variants={itemV}
+            className="mx-auto max-w-4xl text-center"
+          >
+            <div className="inline-flex items-center gap-3 rounded-full border border-red-500/20 bg-white/5 px-4 py-2 backdrop-blur-md shadow-[0_0_24px_rgba(239,68,68,0.08)]">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-400 animate-pulse" />
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.24em] text-red-200/90">
+                Altos Roca Gym · Experience
+              </span>
+            </div>
+
+            <h2 className="mt-6 font-bignoodle text-5xl sm:text-6xl md:text-7xl lg:text-[5.2rem] leading-[0.92] uppercase tracking-[0.05em] text-white">
+              Entrenar con
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-red-700 drop-shadow-[0_0_18px_rgba(239,68,68,0.24)]">
+                otra energía
+              </span>
+            </h2>
+
+            <p className="mt-5 text-base sm:text-lg md:text-xl leading-relaxed text-white/70">
+              Más que una sala de máquinas. Altos Roca propone una experiencia
+              más completa, más intensa y mejor conectada con la forma en la que
+              hoy querés entrenar y vivir el deporte.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              {chips.map((chip, index) => (
+                <motion.span
+                  key={chip}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.06 * index }}
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] sm:text-xs font-medium uppercase tracking-[0.16em] text-white/82 backdrop-blur-md transition-all duration-300 hover:border-red-500/24 hover:bg-red-500/[0.08] hover:text-white"
+                >
+                  {chip}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+
+          <div className="mt-14 grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <motion.article
+              variants={itemV}
+              whileHover={{ y: -4 }}
+              className="relative overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.045] backdrop-blur-2xl shadow-[0_24px_70px_rgba(0,0,0,0.42)] xl:col-span-5"
+            >
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-red-400/70 to-transparent" />
+              <div className="absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-red-500/10 blur-3xl" />
+
+              <div className="relative z-10 p-6 sm:p-7 lg:p-8">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-red-500/18 bg-red-500/10 text-red-300">
+                    <FaFireAlt className="text-xl" />
+                  </div>
+
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
+                      Altos Roca Gym
+                    </div>
+                    <div className="mt-1 text-xl sm:text-2xl font-semibold text-white">
+                      Una propuesta más fuerte
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/72">
+                  Diseñamos un entorno donde el entrenamiento se siente más
+                  vivo: mejor atmósfera, mejor comunidad y una identidad visual
+                  y deportiva mucho más marcada.
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    'Entrenamiento con identidad real',
+                    'Ambiente motivante y ordenado',
+                    'Espacios que invitan a volver',
+                    'Progreso acompañado y visible'
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-500/18 bg-red-500/10 text-red-300">
+                        <FaCheckCircle className="text-sm" />
+                      </div>
+                      <span className="text-sm sm:text-[15px] text-white/82">
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-7 flex flex-col sm:flex-row gap-3">
+                  <NavLink to="/espacios" className="inline-flex">
+                    <button className="btn-logo btn-logo--md w-full sm:w-auto min-w-[190px]">
+                      <span className="btn-logo__text inline-flex items-center justify-center gap-2">
+                        Ver espacios
+                        <FaArrowRight className="text-sm" />
+                      </span>
+                    </button>
+                  </NavLink>
+
+                  <NavLink
+                    to="/turnos"
+                    className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white/88 backdrop-blur-md transition-all duration-300 hover:border-red-500/28 hover:bg-red-500/10 hover:text-white"
+                  >
+                    Reservar turno
+                  </NavLink>
+                </div>
+              </div>
+            </motion.article>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:col-span-7">
+              {features.map((f, index) => (
+                <motion.article
+                  key={f.id}
+                  variants={itemV}
+                  whileHover={{ y: -5, rotateX: -3, rotateY: 4 }}
+                  whileTap={{ scale: 0.995 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 180,
+                    damping: 18,
+                    mass: 0.6
+                  }}
+                  className={[
+                    'group relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045] p-5 sm:p-6 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.38)] [transform-style:preserve-3d]',
+                    f.className,
+                    f.glow
+                  ].join(' ')}
+                >
+                  <div
+                    className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${f.accent}`}
+                  />
+                  <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-red-500/8 blur-2xl" />
+
+                  <div className="flex items-start justify-between gap-4">
+                    <div
+                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border border-white/10 bg-gradient-to-br ${f.accent} text-white shadow-[0_12px_30px_rgba(0,0,0,0.24)]`}
+                    >
+                      {f.icon}
+                    </div>
+
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/62">
+                      {f.badge}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-5 text-xl sm:text-2xl font-semibold tracking-tight text-white">
+                    {f.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm sm:text-base leading-relaxed text-white/72">
+                    {f.description}
+                  </p>
+
+                  <div className="mt-5 space-y-3">
+                    {f.points.map((point) => (
+                      <div
+                        key={point}
+                        className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/18 bg-red-500/10 text-red-300">
+                          <FaCheckCircle className="text-xs" />
+                        </div>
+                        <span className="text-sm text-white/82">{point}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex items-center gap-2 text-sm font-medium uppercase tracking-[0.14em] text-red-300 transition-all duration-300 group-hover:translate-x-1">
+                    <span>Altos Roca Experience</span>
+                    <FaArrowRight className="text-xs" />
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      <style>{`
+        @keyframes orbit {
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .animate-[orbit_28s_linear_infinite] {
+          animation: orbit 28s linear infinite;
+        }
+      `}</style>
     </section>
   );
 };
