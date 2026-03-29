@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@font-face {
+  font-family: 'Montserrat';
+  src: url('./font/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900; 
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "BigNoodle";
+  src: url('./font/big_noodle_titling.ttf') format('truetype'); 
+}
+
+@font-face {
+  font-family: "MessinaRegular";
+  src: url('./font/MessinaSans-Regular.ttf') format('truetype'); 
+}
+
+
+/* 3. Aplica Montserrat a todo el proyecto (¡Esta es la línea clave!) */
+body {
+  font-family: 'MessinaRegular', sans-serif;
+}
+
+
+/* --- El resto de tu código (lo dejamos como estaba por las dudas) --- */
+
+h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700; /* Negrita */
+}
+
+:root {
+  --font-family-base: 'Montserrat', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-black-italic: 900;
+}
+
+.titulo {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-black-italic);
+  font-style: italic;
+}
+
+.cuerpo {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-regular);
+}
+
+.font-bignoodle {
+  font-family: BigNoodle
+}
+
+.font-messina {
+  font-family: MessinaRegular;
+}
+
+@keyframes ray {
+  0%   { transform: translateX(-40%) skewX(-12deg); opacity: 0; }
+  15%  { opacity: .9; }
+  100% { transform: translateX(40%)  skewX(-12deg); opacity: 0; }
+}

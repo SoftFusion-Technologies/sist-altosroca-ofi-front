@@ -1,0 +1,9 @@
+/* En tu CSS global o Tailwind config */
+.loginbg {
+  background-image: url('/src/img/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: zoomBackground 20s ease-in-out infinite;
+}
+
