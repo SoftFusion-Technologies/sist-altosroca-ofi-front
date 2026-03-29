@@ -242,9 +242,9 @@ const AdminPage = () => {
                 />
               ))}
 
-              <motion.div variants={itemV} className="h-full">
+              {/* <motion.div variants={itemV} className="h-full">
                 <CardRecaptacion userLevel={userLevel} userId={userId} />
-              </motion.div>
+              </motion.div> */}
             </div>
           </motion.div>
         </div>
