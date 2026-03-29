@@ -7,13 +7,13 @@ import ParticlesBackground from '../components/ParticlesBackground';
 import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
 
 const fallbackNavItems = [
+  { label: 'INICIO', path: '/inicio' },
   { label: 'HORARIOS', path: '/horarios' },
   { label: 'TURNOS', path: '/turnos' },
   // { label: 'SOCIOS', path: '/socios' },
   { label: 'ESPACIOS', path: '/espacios' },
   { label: 'SUPLEMENTOS', path: '/suplementos' },
-  { label: 'SOY ALUMNO', path: '/soyalumno' },
-
+  { label: 'SOY ALUMNO', path: '/soyalumno' }
 ];
 
 const Navbar = () => {

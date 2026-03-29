@@ -346,7 +346,7 @@ const HeroSection = () => {
 
           <motion.h1
             variants={itemV}
-            className="mt-8 max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-[5.8rem] font-black uppercase leading-[0.92] tracking-[-0.04em]"
+            className="titulo mt-8 max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-[5.8rem] font-black uppercase leading-[0.92] tracking-[-0.04em]"
           >
             Más que un gym
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-red-700 drop-shadow-[0_0_18px_rgba(239,68,68,0.24)]">

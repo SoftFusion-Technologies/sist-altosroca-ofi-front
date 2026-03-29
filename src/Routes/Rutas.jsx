@@ -9,14 +9,8 @@ const routes = [
   {
     path: '/',
     element: <Home />,
-    name: 'Home',
-    showInNav: false
-  },
-  {
-    path: '/clase-prueba',
-    element: <ClasePrueba />,
-    name: 'Clase de Prueba',
-    showInNav: false
+    name: 'Inicio',
+    showInNav: true
   },
   {
     path: '/horarios',
@@ -30,12 +24,12 @@ const routes = [
   //     name: "Socios",
   //     showInNav: true,
   // },
-   {
-       path: "/soyalumno",
-       element: <Socios />,
-       name: "Soy Alumno",
-       showInNav: true,
-   },
+  {
+    path: '/soyalumno',
+    element: <Socios />,
+    name: 'Soy Alumno',
+    showInNav: true
+  },
   {
     path: '/espacios',
     element: <Espacios />,
