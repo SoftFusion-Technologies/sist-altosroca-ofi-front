@@ -9,7 +9,7 @@ import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
 const fallbackNavItems = [
   { label: 'HORARIOS', path: '/horarios' },
   { label: 'TURNOS', path: '/turnos' },
-  { label: 'SOCIOS', path: '/socios' },
+  // { label: 'SOCIOS', path: '/socios' },
   { label: 'ESPACIOS', path: '/espacios' },
   { label: 'SUPLEMENTOS', path: '/suplementos' },
   { label: 'SOY ALUMNO', path: '/soyalumno' },

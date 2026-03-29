@@ -4,30 +4,51 @@ import {
   FaCalendarWeek,
   FaRegClock,
   FaCopy,
-  FaMapMarkedAlt
+  FaMapMarkedAlt,
+  FaArrowRight,
+  FaWhatsapp
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import ParticlesBackground from '../../components/ParticlesBackground';
 import { useCallback } from 'react';
+import { NavLink } from 'react-router-dom';
+
+/*
+ * Programador: Benjamin Orellana
+ * Fecha Creación: 28 / 03 / 2026
+ * Versión: 2.0
+ *
+ * Descripción:
+ * Página de horarios adaptada para Altos Roca Gym.
+ * Se reemplaza la identidad anterior por el lenguaje visual rojo/negro
+ * del proyecto, actualizando dirección, horarios y CTA principal.
+ *
+ * Tema: Página de Horarios - Landing pública
+ * Capa: Frontend
+ */
 
 const Horarios = () => {
   const schedule = [
     {
       icon: <FaCalendarWeek size={28} />,
       days: 'Lunes a Viernes',
-      time: '07:00 – 22:00 hs'
+      time: '08:00 – 22:30 hs',
+      detail: 'Amplio rango horario para entrenar a tu ritmo.'
     },
     {
       icon: <FaCalendarDay size={28} />,
-      days: 'Sábados y Feriados',
-      time: '10:00 – 17:00 hs'
+      days: 'Sábados',
+      time: '15:00 – 19:00 hs',
+      detail: 'Una ventana ideal para cerrar la semana en movimiento.'
     }
   ];
 
-  const address = 'Lamadrid 986 - Barrio Sur, Tucumán';
+  const address = 'Av. Peru y Sarmiento, Tafi Viejo, Tucuman, Argentina';
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     address
   )}`;
+
+  const whatsappHref = 'https://wa.me/543814480898';
 
   const copy = useCallback(async (text) => {
     try {
@@ -37,28 +58,27 @@ const Horarios = () => {
     }
   }, []);
 
-  // SVG patrón de mancuerna (ultra tenue, para continuidad con el Hero)
   const dumbbellURI = encodeURI(`
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
       <g fill='none' stroke='rgba(255,255,255,0.11)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'>
         <line x1='10' y1='32' x2='54' y2='32' />
-        <rect x='4' y='22' width='8' height='20' rx='2' ry='2' fill='rgba(255,255,255,0.06)'/>
+        <rect x='4' y='22' width='8' height='20' rx='2' ry='2' fill='rgba(239,68,68,0.09)'/>
         <rect x='12' y='24' width='8' height='16' rx='2' ry='2' fill='rgba(255,255,255,0.04)'/>
-        <rect x='52' y='22' width='8' height='20' rx='2' ry='2' fill='rgba(255,255,255,0.06)'/>
+        <rect x='52' y='22' width='8' height='20' rx='2' ry='2' fill='rgba(239,68,68,0.09)'/>
         <rect x='44' y='24' width='8' height='16' rx='2' ry='2' fill='rgba(255,255,255,0.04)'/>
       </g>
     </svg>
   `);
 
-  // Variantes de animación
   const container = {
     hidden: { opacity: 0, y: 12 },
     show: {
       opacity: 1,
       y: 0,
-      transition: { staggerChildren: 0.12, delayChildren: 0.4 }
+      transition: { staggerChildren: 0.12, delayChildren: 0.18 }
     }
   };
+
   const cardPop = {
     hidden: { opacity: 0, y: 18, scale: 0.98 },
     show: {
@@ -71,21 +91,16 @@ const Horarios = () => {
 
   return (
     <section className="relative isolate overflow-hidden bg-black text-white py-20 md:py-28">
-      {/* Partículas + auroras + grid + noise (mismo lenguaje del Hero) */}
       <ParticlesBackground />
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.18),transparent_24%),linear-gradient(180deg,#050505_0%,#09090b_45%,#040404_100%)]" />
+
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 blur-2xl opacity-60"
-      >
-        <div className="absolute -top-28 -left-24 size-[36rem] rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,rgba(59,130,246,0.12),rgba(6,182,212,0.10),rgba(99,102,241,0.10),transparent,rgba(6,182,212,0.10))]" />
-        <div className="absolute -bottom-24 -right-20 size-[40rem] rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.22]"
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
         style={{
           backgroundImage:
-            'linear-gradient(to right, rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.05) 1px, transparent 1px)',
+            'linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
           WebkitMaskImage:
             'radial-gradient(60% 50% at 50% 40%, rgba(0,0,0,1) 38%, rgba(0,0,0,0) 100%)',
@@ -93,7 +108,10 @@ const Horarios = () => {
             'radial-gradient(60% 50% at 50% 40%, rgba(0,0,0,1) 38%, rgba(0,0,0,0) 100%)'
         }}
       />
-      {/* Mancuernas orbitando muy suaves */}
+
+      <div className="pointer-events-none absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-red-600/18 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -right-20 h-[30rem] w-[30rem] rounded-full bg-red-500/12 blur-3xl" />
+
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 size-[64vmin] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5 animate-[orbit_36s_linear_infinite]" />
         <div
@@ -104,7 +122,7 @@ const Horarios = () => {
             backgroundImage: `url("data:image/svg+xml;utf8,${dumbbellURI}")`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
-            filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.15))'
+            filter: 'drop-shadow(0 0 10px rgba(239,68,68,0.15))'
           }}
         />
         <div
@@ -119,7 +137,7 @@ const Horarios = () => {
           }}
         />
       </div>
-      {/* Noise */}
+
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-soft-light"
@@ -129,7 +147,6 @@ const Horarios = () => {
         }}
       />
 
-      {/* Divisor superior metálico (continúa del Hero) */}
       <div className="absolute -top-12 left-0 w-full h-12" aria-hidden>
         <svg
           viewBox="0 0 1440 120"
@@ -138,83 +155,94 @@ const Horarios = () => {
         >
           <path
             d="M0,120 C300,0 1140,240 1440,60 L1440,120 L0,120 Z"
-            fill="url(#silverGrad2)"
+            fill="url(#redGradTop)"
           />
           <defs>
-            <linearGradient id="silverGrad2" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="#e5e7eb" stopOpacity="0.10" />
-              <stop offset="0.5" stopColor="#9ca3af" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#d1d5db" stopOpacity="0.10" />
+            <linearGradient id="redGradTop" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#7f1d1d" stopOpacity="0.10" />
+              <stop offset="0.5" stopColor="#ef4444" stopOpacity="0.20" />
+              <stop offset="1" stopColor="#7f1d1d" stopOpacity="0.10" />
             </linearGradient>
           </defs>
         </svg>
       </div>
 
-      {/* Contenido */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 mt-10">
-        {/* Cabecera */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 mt-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
+          viewport={{ once: true, amount: 0.35 }}
           transition={{ type: 'spring', stiffness: 220, damping: 20 }}
           className="text-center mb-12"
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-druk uppercase text-transparent bg-clip-text bg-gradient-to-r from-gray-100 via-gray-300 to-gray-400 mb-4 sm:mb-6 leading-tight font-extrabold tracking-tight">
-            NUESTROS{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-slate-100 to-slate-500">
-              HORARIOS
+          <div className="inline-flex items-center gap-3 rounded-full border border-red-500/20 bg-white/5 px-4 py-2 backdrop-blur-md shadow-[0_0_24px_rgba(239,68,68,0.08)]">
+            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-400 animate-pulse" />
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.24em] text-red-200/90">
+              Altos Roca Gym · Horarios
+            </span>
+          </div>
+
+          <h1 className="mt-6 font-bignoodle text-5xl sm:text-6xl md:text-7xl lg:text-[5rem] leading-[0.92] uppercase tracking-[0.05em] text-white">
+            Nuestros
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-red-700 drop-shadow-[0_0_18px_rgba(239,68,68,0.24)]">
+              horarios
             </span>
           </h1>
-          <p className="mt-3 text-gray-300">
-            Siempre abiertos para ayudarte a alcanzar tu mejor versión.
+
+          <p className="mt-5 text-base sm:text-lg md:text-xl leading-relaxed text-white/70 max-w-3xl mx-auto">
+            Organizá tu semana y elegí el mejor momento para entrenar en Altos
+            Roca Gym.
           </p>
         </motion.div>
 
-        {/* Tarjeta principal “glass” */}
-        <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden">
-          {/* borde de luz animado */}
+        <div className="relative rounded-[30px] border border-white/10 bg-white/[0.045] backdrop-blur-2xl shadow-[0_24px_70px_rgba(0,0,0,0.42)] overflow-hidden">
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-gray-300/0"
+            className="pointer-events-none absolute inset-0 rounded-[30px]"
             style={{
               boxShadow:
-                'inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 30px rgba(255,255,255,0.06)'
+                'inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 30px rgba(239,68,68,0.05)'
             }}
           />
 
-          {/* Top meta row */}
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-red-400/70 to-transparent" />
+
           <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-6">
-            <div className="inline-flex items-center gap-2 text-sm text-gray-300">
-              <FaRegClock className="opacity-80" />
-              <span>Zona: Barrio Sur - Tucumán</span>
+            <div className="inline-flex items-center gap-2 text-sm text-white/72">
+              <FaRegClock className="text-red-300 opacity-90" />
+              <span>Zona: Tafí Viejo · Tucumán</span>
             </div>
-            <div className="inline-flex items-center gap-3 text-sm">
+
+            <div className="inline-flex flex-wrap items-center gap-3 text-sm">
               <a
                 href={mapsHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 transition"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/86 hover:bg-red-500/10 hover:border-red-500/24 transition"
               >
-                <FaMapMarkedAlt />
+                <FaMapMarkedAlt className="text-red-300" />
                 Ver en Google Maps
               </a>
+
               <button
-                onClick={() => copy(`${address} · LV: 07–22 · S/F: 10–17`)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 transition"
+                onClick={() =>
+                  copy(
+                    `${address} · Lunes a Viernes: 08:00–22:30 hs · Sábados: 15:00–19:00 hs`
+                  )
+                }
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/86 hover:bg-red-500/10 hover:border-red-500/24 transition"
               >
-                <FaCopy />
+                <FaCopy className="text-red-300" />
                 Copiar info
               </button>
             </div>
           </div>
 
-          {/* Grid de horarios */}
           <motion.div
             variants={container}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, amount: 0.35 }}
+            viewport={{ once: true, amount: 0.25 }}
             className="grid gap-6 md:grid-cols-2 px-6 py-8"
           >
             {schedule.map((item, i) => (
@@ -224,75 +252,94 @@ const Horarios = () => {
                 whileHover={{ y: -6, rotateX: -4, rotateY: 4 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 18 }}
                 className="
-                  group relative rounded-xl border border-white/10 bg-neutral-900/70
+                  group relative rounded-[24px] border border-white/10 bg-black/35
                   px-5 py-6 shadow-[0_14px_40px_rgba(0,0,0,0.45)]
                   [transform-style:preserve-3d] overflow-hidden
                 "
               >
-                {/* ribete metálico */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-gray-300/0 group-hover:ring-gray-300/20 transition"
+                  className="pointer-events-none absolute inset-0 rounded-[24px] ring-1 ring-red-300/0 group-hover:ring-red-300/20 transition"
                 />
-                {/* “edge light” */}
                 <span
                   aria-hidden
-                  className="absolute -right-8 -top-8 size-16 rotate-45 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700"
+                  className="absolute -right-8 -top-8 size-16 rotate-45 bg-gradient-to-br from-red-900/50 to-black border border-white/10"
                 />
 
                 <div className="flex items-center gap-4">
-                  <div className="grid place-items-center size-12 rounded-lg border border-white/10 bg-white/5 text-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+                  <div className="grid place-items-center size-12 rounded-2xl border border-red-500/18 bg-red-500/10 text-red-200 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
                     {item.icon}
                   </div>
+
                   <div>
                     <h3 className="text-white text-xl font-semibold tracking-tight">
                       {item.days}
                     </h3>
-                    <p className="text-gray-300 text-lg">{item.time}</p>
+                    <p className="text-white/86 text-lg">{item.time}</p>
                   </div>
                 </div>
 
-                {/* línea base plata */}
-                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400 opacity-35 group-hover:opacity-70 transition-opacity duration-300 rounded-b-xl" />
+                <p className="mt-4 text-sm text-white/58 leading-relaxed">
+                  {item.detail}
+                </p>
+
+                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-700 via-red-400 to-red-700 opacity-40 group-hover:opacity-75 transition-opacity duration-300 rounded-b-[24px]" />
               </motion.div>
             ))}
           </motion.div>
 
-          {/* Footer: ubicación grande */}
-          <div className="border-t border-white/10 px-6 py-6 text-center">
-            <div className="flex items-center justify-center gap-3 text-gray-200 mb-2">
-              <FaMapMarkerAlt className="text-gray-200" />
-              <span className="text-lg">{address}</span>
+          <div className="border-t border-white/10 px-6 py-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+              <div>
+                <div className="flex items-center gap-3 text-white mb-2">
+                  <FaMapMarkerAlt className="text-red-300" />
+                  <span className="text-lg sm:text-xl font-semibold">
+                    Av. Perú y Sarmiento · Tafí Viejo
+                  </span>
+                </div>
+                <p className="text-white/58 text-sm sm:text-base">
+                  Un punto accesible para que puedas entrenar con comodidad.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex"
+                >
+                  <button className="btn-logo btn-logo--md min-w-[210px]">
+                    <span className="btn-logo__text inline-flex items-center justify-center gap-2">
+                      Consultar por WhatsApp
+                      <FaWhatsapp className="text-sm" />
+                    </span>
+                  </button>
+                </a>
+
+                <NavLink
+                  to="/turnos"
+                  className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white/88 backdrop-blur-md transition-all duration-300 hover:border-red-500/28 hover:bg-red-500/10 hover:text-white"
+                >
+                  <span className="inline-flex items-center justify-center gap-2">
+                    Reservar turno
+                    <FaArrowRight className="text-xs text-red-300" />
+                  </span>
+                </NavLink>
+              </div>
             </div>
-            <p className="font-semibold text-xl text-transparent bg-clip-text bg-gradient-to-r from-gray-100 via-gray-300 to-gray-400">
-              #DaleVeniAEntrenar 💪
-            </p>
           </div>
         </div>
-
-        {/* CTA sticky fantasma (aparece al hacer scroll hacia esta sección) */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          className="mt-10 flex justify-center"
-        >
-          <a
-            href="/clase-prueba"
-            className="px-6 py-3 font-bold text-gray-900 rounded-md text-lg
-                       bg-gradient-to-r from-gray-100 via-gray-200 to-gray-400
-                       transition-transform duration-200 hover:brightness-110 hover:-translate-y-[2px] active:translate-y-0
-                       shadow-[0_0_18px_rgba(255,255,255,0.55)]"
-          >
-            SOLICITÁ TU CLASE DE PRUEBA
-          </a>
-        </motion.div>
       </div>
 
-      {/* Keyframes locales (reuse con Hero) */}
       <style>{`
-        @keyframes orbit { to { transform: translate(-50%, -50%) rotate(360deg); } }
-        .animate-[orbit_36s_linear_infinite] { animation: orbit 36s linear infinite; }
+        @keyframes orbit { 
+          to { transform: translate(-50%, -50%) rotate(360deg); } 
+        }
+
+        .animate-[orbit_36s_linear_infinite] { 
+          animation: orbit 36s linear infinite; 
+        }
       `}</style>
     </section>
   );
