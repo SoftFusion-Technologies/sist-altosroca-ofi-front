@@ -108,7 +108,7 @@ const cardVariants = {
 
 const Espacios = () => {
   const contenedorRef = useRef(null);
-  const estaVisible = useInView(contenedorRef, { once: true, amount: 0.12 });
+  const estaVisible = useInView(contenedorRef, { once: true, amount: 0 });
 
   const discFondo = encodeURIComponent(`
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>

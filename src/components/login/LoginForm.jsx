@@ -1,15 +1,15 @@
 /*
  * Programador: Benjamin Orellana
- * Fecha Actualización: 28 / 03 / 2026
- * Versión: 3.0
+ * Fecha Actualización: 29 / 03 / 2026
+ * Versión: 1.0
  *
  * Descripción:
- * Form de login rediseñado para Altos Roca Gym con dos modos:
- *  - Staff (email + password) -> /login
- *  - Alumno (teléfono + DNI)  -> /soyalumno
- * Mantiene la lógica existente de autenticación, modal de error,
- * video de fondo, particles y AuthContext, pero adapta por completo
- * la experiencia visual al lenguaje rojo/negro del proyecto.
+ * Form de ingreso simplificado y optimizado para mobile.
+ * Se separa visualmente el acceso de Staff (/login) del acceso
+ * de Alumno (/soyalumno), evitando tabs o bloques compartidos.
+ * Se mantiene la lógica existente de autenticación, modal de error,
+ * video de fondo, particles y AuthContext, pero con una interfaz
+ * mucho más limpia, compacta y responsive.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -24,14 +24,10 @@ import { motion } from 'framer-motion';
 import {
   FaEye,
   FaEyeSlash,
-  FaDumbbell,
   FaUserShield,
   FaUserGraduate,
-  FaMapMarkerAlt,
-  FaClock,
-  FaWhatsapp,
-  FaCheckCircle,
-  FaArrowRight
+  FaArrowRight,
+  FaWhatsapp
 } from 'react-icons/fa';
 import ParticlesBackground from '../ParticlesBackground';
 import VideoLogin from '../../img/staff/videoBienvenida.mp4';
@@ -138,11 +134,10 @@ const LoginForm = () => {
   return (
     <div
       id="login"
-      className="relative min-h-screen w-full overflow-hidden bg-black text-white"
+      className="relative min-h-screen overflow-hidden bg-black text-white"
     >
-      {/* VIDEO DE FONDO */}
       <video
-        className="absolute inset-0 h-full w-full object-cover z-0"
+        className="absolute inset-0 z-0 h-full w-full object-cover"
         src={VideoLogin}
         autoPlay
         muted
@@ -151,213 +146,51 @@ const LoginForm = () => {
         aria-hidden
       />
 
-      {/* OVERLAYS */}
-      <div className="absolute inset-0 z-[2] bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.20),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.70)_52%,rgba(0,0,0,0.86)_100%)]" />
-      <div
-        className="absolute inset-0 z-[3] opacity-[0.08]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px)',
-          backgroundSize: '42px 42px'
-        }}
-      />
-      <div className="absolute -top-16 -left-16 z-[3] h-[26rem] w-[26rem] rounded-full bg-red-600/20 blur-3xl" />
-      <div className="absolute bottom-0 -right-16 z-[3] h-[28rem] w-[28rem] rounded-full bg-red-500/14 blur-3xl" />
+      <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.68)_45%,rgba(0,0,0,0.88)_100%)]" />
+      <div className="absolute inset-0 z-[2] bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.16),transparent_26%)]" />
 
-      {/* PARTICLES */}
-      <div className="absolute inset-0 z-[4] pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 z-[3]">
         <ParticlesBackground />
       </div>
 
-      {/* ORBITAS SUAVES */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-[4]">
-        <div className="absolute left-1/2 top-[26%] size-[54vmin] max-h-[480px] max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-        <div className="absolute left-1/2 top-[26%] size-[40vmin] max-h-[360px] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-red-500/16" />
-      </div>
+      <div className="pointer-events-none absolute -top-20 left-1/2 z-[2] h-72 w-72 -translate-x-1/2 rounded-full bg-red-600/15 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-0 z-[2] h-72 w-72 rounded-full bg-red-500/10 blur-3xl" />
 
-      <div className="relative z-20 mx-auto flex min-h-screen max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 28, scale: 0.985 }}
+          initial={{ opacity: 0, y: 24, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="grid w-full overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.045] shadow-[0_24px_80px_rgba(0,0,0,0.52)] backdrop-blur-2xl lg:grid-cols-[1.08fr_0.92fr]"
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          className="w-full max-w-md"
         >
-          {/* PANEL IZQUIERDO */}
-          <div className="relative overflow-hidden border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-red-400/70 to-transparent lg:hidden" />
-            <div className="absolute inset-y-0 right-0 hidden w-[3px] bg-gradient-to-b from-transparent via-red-400/70 to-transparent lg:block" />
-            <div className="absolute -top-14 left-8 h-36 w-36 rounded-full bg-red-500/10 blur-3xl" />
-            <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-red-500/10 blur-3xl" />
+          <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#0a0a0b]/85 shadow-[0_24px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+            <div className="h-1 w-full bg-gradient-to-r from-red-700 via-red-500 to-red-400" />
 
-            <div className="relative z-10">
-              <div className="flex items-center gap-4">
+            <div className="p-5 sm:p-7">
+              <div className="flex flex-col items-center text-center">
                 <img
                   src={Logo}
                   alt="Altos Roca Gym"
-                  className="h-16 sm:h-20 w-auto object-contain drop-shadow-[0_0_18px_rgba(239,68,68,0.25)]"
+                  className="h-16 w-auto object-contain sm:h-20"
                 />
 
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
-                    Altos Roca Gym
-                  </div>
-                  <h1 className="mt-1 font-bignoodle text-3xl sm:text-4xl uppercase tracking-[0.05em] text-white">
-                    Ingreso seguro
-                  </h1>
-                </div>
-              </div>
-
-              <p className="mt-6 max-w-xl text-sm sm:text-base leading-relaxed text-white/72">
-                Accedé a tu espacio de trabajo o a tu perfil de alumno con una
-                experiencia visual totalmente integrada a la identidad de Altos
-                Roca Gym.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {['Gym', 'Fútbol', 'Pádel', 'Comunidad'].map((chip) => (
-                  <span
-                    key={chip}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/82 backdrop-blur-md"
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[24px] border border-white/10 bg-black/25 p-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/18 bg-red-500/10 text-red-300">
-                    <FaMapMarkerAlt />
-                  </div>
-                  <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
-                    Ubicación
-                  </div>
-                  <div className="mt-1 text-sm text-white/84">
-                    Av. Perú y Sarmiento
-                  </div>
-                  <div className="text-sm text-white/62">
-                    Tafí Viejo · Tucumán
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] border border-white/10 bg-black/25 p-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-red-500/18 bg-red-500/10 text-red-300">
-                    <FaClock />
-                  </div>
-                  <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
-                    Horarios
-                  </div>
-                  <div className="mt-1 text-sm text-white/84">
-                    Lunes a Viernes 8.00 a 22.30
-                  </div>
-                  <div className="text-sm text-white/62">
-                    Sábados 15.00 a 19.00
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 space-y-3">
-                {[
-                  'Acceso rápido para staff y alumnos',
-                  'Diseño visual alineado a Altos Roca Gym',
-                  'Ingreso simple y claro según el perfil'
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/18 bg-red-500/10 text-red-300">
-                      <FaCheckCircle className="text-xs" />
-                    </div>
-                    <span className="text-sm text-white/82">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="https://wa.me/543814480898"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex"
-                >
-                  <button className="btn-logo btn-logo--md min-w-[220px]">
-                    <span className="btn-logo__text inline-flex items-center justify-center gap-2">
-                      WhatsApp
-                      <FaWhatsapp className="text-sm" />
-                    </span>
-                  </button>
-                </a>
-
-                <NavLink
-                  to="/"
-                  className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white/88 backdrop-blur-md transition-all duration-300 hover:border-red-500/28 hover:bg-red-500/10 hover:text-white"
-                >
-                  Volver al inicio
-                </NavLink>
-              </div>
-            </div>
-          </div>
-
-          {/* PANEL DERECHO / FORM */}
-          <div className="relative overflow-hidden p-6 sm:p-8">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-red-400/70 to-transparent" />
-            <div className="absolute -top-16 right-6 h-36 w-36 rounded-full bg-red-500/10 blur-3xl" />
-
-            <div className="relative z-10 mx-auto max-w-md">
-              <div className="mb-6 flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
-                    Acceso
-                  </div>
-                  <h2 className="mt-1 text-2xl sm:text-3xl font-semibold text-white">
-                    {isAlumno ? 'Ingreso de alumno' : 'Ingreso de staff'}
-                  </h2>
-                </div>
-
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
-                    isAlumno
-                      ? 'border-red-500/18 bg-red-500/10 text-red-300'
-                      : 'border-white/10 bg-white/5 text-white/86'
-                  }`}
-                >
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-red-200">
                   {isAlumno ? <FaUserGraduate /> : <FaUserShield />}
+                  {isAlumno ? 'Acceso alumno' : 'Acceso staff'}
                 </div>
+
+                <h1 className="titulo uppercase mt-4 text-2xl font-semibold text-white sm:text-3xl">
+                  {isAlumno ? 'Ingresá a tu perfil' : 'Ingresá al panel'}
+                </h1>
+
+                <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/62">
+                  {isAlumno
+                    ? 'Accedé con tu teléfono y DNI.'
+                    : 'Accedé con tu correo y contraseña.'}
+                </p>
               </div>
 
-              <p className="mb-6 text-sm sm:text-base text-white/64">
-                {isAlumno
-                  ? 'Ingresá tu teléfono y DNI para acceder a tu perfil.'
-                  : 'Ingresá tus credenciales para acceder al panel interno.'}
-              </p>
-
-              <div className="mb-6 flex rounded-2xl border border-white/10 bg-black/25 p-1">
-                <NavLink
-                  to="/login"
-                  className={`flex-1 rounded-[14px] px-4 py-3 text-center text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${
-                    !isAlumno
-                      ? 'bg-white text-black'
-                      : 'text-white/72 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  Staff
-                </NavLink>
-
-                <NavLink
-                  to="/soyalumno"
-                  className={`flex-1 rounded-[14px] px-4 py-3 text-center text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${
-                    isAlumno
-                      ? 'bg-gradient-to-r from-red-700 via-red-500 to-red-400 text-white'
-                      : 'text-white/72 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  Alumno
-                </NavLink>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Campo 1 */}
+              <form onSubmit={handleSubmit} className="mt-8 space-y-4">
                 <div>
                   <label
                     htmlFor={isAlumno ? 'telefono' : 'email'}
@@ -375,7 +208,7 @@ const LoginForm = () => {
                     placeholder={
                       isAlumno ? 'Ej: 3811234567' : 'ejemplo@correo.com'
                     }
-                    className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3.5 text-white placeholder:text-white/35 outline-none transition-all duration-300 focus:border-red-500/30 focus:bg-red-500/[0.05]"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-white placeholder:text-white/30 outline-none transition-all duration-300 focus:border-red-500/30 focus:bg-red-500/[0.05]"
                     onChange={handleInput}
                   />
 
@@ -384,7 +217,6 @@ const LoginForm = () => {
                     : errors.email && <Alerta>{errors.email}</Alerta>}
                 </div>
 
-                {/* Campo 2 */}
                 <div>
                   <label
                     htmlFor={isAlumno ? 'dni' : 'password'}
@@ -405,7 +237,7 @@ const LoginForm = () => {
                       placeholder={
                         isAlumno ? 'Documento de identidad' : '••••••••'
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3.5 pr-12 text-white placeholder:text-white/35 outline-none transition-all duration-300 focus:border-red-500/30 focus:bg-red-500/[0.05]"
+                      className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 pr-12 text-white placeholder:text-white/30 outline-none transition-all duration-300 focus:border-red-500/30 focus:bg-red-500/[0.05]"
                       onChange={handleInput}
                     />
 
@@ -413,7 +245,7 @@ const LoginForm = () => {
                       <button
                         type="button"
                         onClick={toggleShowPassword}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 transition-colors duration-300 hover:text-white"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/45 transition-colors duration-300 hover:text-white"
                         aria-label={
                           showPassword
                             ? 'Ocultar contraseña'
@@ -435,16 +267,16 @@ const LoginForm = () => {
                     <button
                       type="submit"
                       disabled
-                      className="w-full rounded-2xl bg-white/15 px-6 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white/70 cursor-not-allowed"
+                      className="w-full cursor-not-allowed rounded-2xl bg-white/15 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-white/70"
                     >
                       Ingresando...
                     </button>
                   ) : (
                     <button
                       type="submit"
-                      className="btn-logo btn-logo--lg w-full"
+                      className="w-full rounded-2xl bg-gradient-to-r from-red-700 via-red-500 to-red-400 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(239,68,68,0.28)] transition-all duration-300 hover:scale-[1.01]"
                     >
-                      <span className="btn-logo__text inline-flex items-center justify-center gap-2">
+                      <span className="titulo uppercase inline-flex items-center justify-center gap-2">
                         {isAlumno
                           ? 'Ingresar a mi perfil'
                           : 'Ingresar al panel'}
@@ -455,23 +287,49 @@ const LoginForm = () => {
                 </div>
               </form>
 
-              <p className="mt-6 text-center text-xs sm:text-sm italic text-white/42">
-                {isAlumno
-                  ? 'Tu progreso empieza con cada ingreso'
-                  : 'La constancia supera al talento'}
-              </p>
+              <div className="mt-6 space-y-3 border-t border-white/10 pt-5 text-center">
+                <NavLink
+                  to={isAlumno ? '/login' : '/soyalumno'}
+                  className="inline-flex items-center gap-2 text-sm text-white/62 transition-colors duration-300 hover:text-white"
+                >
+                  {isAlumno
+                    ? '¿Sos staff? Ingresá acá'
+                    : '¿Sos alumno? Ingresá acá'}
+                  <FaArrowRight className="text-[11px]" />
+                </NavLink>
+
+                <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                  <NavLink
+                    to="/"
+                    className="text-sm text-white/46 transition-colors duration-300 hover:text-white"
+                  >
+                    Volver al inicio
+                  </NavLink>
+
+                  <span className="hidden text-white/18 sm:inline">•</span>
+
+                  <a
+                    href="https://wa.me/543814480898"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-white/46 transition-colors duration-300 hover:text-white"
+                  >
+                    WhatsApp
+                    <FaWhatsapp className="text-xs" />
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* MODAL DE ERROR */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
         contentLabel="Error Modal"
         className="flex h-screen items-center justify-center p-4"
-        overlayClassName="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999]"
+        overlayClassName="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
       >
         <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#0a0a0b] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.60)]">
           <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
@@ -481,6 +339,7 @@ const LoginForm = () => {
           <h2 className="mt-2 text-2xl font-semibold text-white">
             Error de acceso
           </h2>
+
           <p className="mt-4 text-white/72">{modalMessage}</p>
 
           <div className="mt-6 flex justify-end">

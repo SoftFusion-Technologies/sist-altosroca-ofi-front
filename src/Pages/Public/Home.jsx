@@ -11,13 +11,15 @@ const Home = () => {
     <div className="bg-gray-900 text-white">
       <HeroSection />
       <Banner />
-      <EntranamientosAdaptan />
+      <FeaturesSection />
+
       <Banner
         altura="h-[270px] md:h-[320px] lg:h-[350px]"
         texto_1="text-2xl md:text-3xl lg:text-4xl"
         texto_2="text-2xl md:text-2xl lg:text-3xl"
       />
-      <FeaturesSection />
+      <EntranamientosAdaptan />
+
       <Banner
         altura="h-[270px] md:h-[320px] lg:h-[350px]"
         texto_1="text-2xl md:text-3xl lg:text-4xl"

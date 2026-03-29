@@ -15,13 +15,13 @@ import ParticlesBackground from './ParticlesBackground';
 /*
  * Programador: Benjamin Orellana
  * Fecha Creación: 28 / 03 / 2026
- * Versión: 3.0
+ * Versión: 4.0
  *
  * Descripción:
- * Rediseño completo de la sección de planes para Altos Roca Gym.
- * Se reemplaza la grilla tradicional por una propuesta visual más moderna,
- * inmersiva, animada y responsive, alineada a la identidad rojo/negro
- * del hero y del resto de la landing.
+ * Rediseño visual de la sección de planes para hacerla más luminosa,
+ * más compacta y mejor equilibrada en responsive.
+ * Se reducen alturas visuales, se simplifican bloques internos y se
+ * agrega mayor brillo premium en fondos, bordes, badges y CTA.
  *
  * Tema: Planes de precios - Landing pública
  * Capa: Frontend
@@ -50,19 +50,19 @@ const formatearARS = (valor) =>
   new Intl.NumberFormat('es-AR').format(Number(valor || 0));
 
 const containerV = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
     y: 0,
     transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.08
+      staggerChildren: 0.1,
+      delayChildren: 0.06
     }
   }
 };
 
 const itemV = {
-  hidden: { opacity: 0, y: 24, scale: 0.985 },
+  hidden: { opacity: 0, y: 22, scale: 0.985 },
   show: {
     opacity: 1,
     y: 0,
@@ -96,7 +96,7 @@ const PlanesDePrecios = () => {
       duracionMeses: 1,
       detallePeriodo: '1 mes',
       descripcion:
-        'La opción ideal para arrancar, conocer el espacio y empezar a construir constancia.',
+        'Ideal para arrancar, conocer el espacio y empezar a construir constancia.',
       beneficios: [
         'Acceso al gimnasio',
         'Sin matrícula de ingreso',
@@ -107,8 +107,10 @@ const PlanesDePrecios = () => {
       ahorro: null,
       icon: FaDumbbell,
       etiqueta: 'Flexible',
-      accent: 'from-red-800 via-red-600 to-red-400',
-      soft: 'border-red-500/22 bg-red-500/10 text-red-200 shadow-[0_0_26px_rgba(239,68,68,0.12)]',
+      accent: 'from-rose-600 via-red-500 to-orange-300',
+      glow: 'shadow-[0_18px_55px_rgba(239,68,68,0.16)]',
+      badge:
+        'border-red-400/25 bg-red-500/12 text-red-100 shadow-[0_0_28px_rgba(239,68,68,0.12)]',
       cta: 'Quiero este plan'
     },
     {
@@ -118,20 +120,22 @@ const PlanesDePrecios = () => {
       duracionMeses: 3,
       detallePeriodo: '3 meses',
       descripcion:
-        'Una propuesta pensada para ver progreso real, sostener el ritmo y entrenar con más estructura.',
+        'Una opción pensada para ver progreso real y sostener mejor el ritmo.',
       beneficios: [
         'Todo lo del plan mensual',
         'Rutina personalizada',
         'Seguimiento de progreso',
         'Mejor relación precio/tiempo',
-        'Mayor continuidad de entrenamiento'
+        'Mayor continuidad'
       ],
       popular: true,
       ahorro: precioTrimestralBase - 105000,
       icon: FaStar,
       etiqueta: 'Más elegido',
-      accent: 'from-red-700 via-red-500 to-orange-400',
-      soft: 'border-orange-400/22 bg-orange-500/10 text-orange-100 shadow-[0_0_26px_rgba(249,115,22,0.12)]',
+      accent: 'from-red-700 via-red-500 to-amber-300',
+      glow: 'shadow-[0_24px_70px_rgba(239,68,68,0.24)]',
+      badge:
+        'border-orange-300/25 bg-orange-400/14 text-orange-50 shadow-[0_0_30px_rgba(251,146,60,0.16)]',
       cta: 'Empezar con este'
     },
     {
@@ -141,114 +145,47 @@ const PlanesDePrecios = () => {
       duracionMeses: 6,
       detallePeriodo: '6 meses',
       descripcion:
-        'Un plan para quienes quieren comprometerse, sostener el proceso y aprovechar mejor cada etapa.',
+        'Pensado para quienes buscan continuidad, resultados y mejor ahorro.',
       beneficios: [
         'Todo lo del plan trimestral',
-        'Mayor continuidad en objetivos',
-        'Evaluación de progreso periódica',
-        'Más tiempo para resultados visibles',
-        'Mejor aprovechamiento económico'
+        'Evaluación de progreso',
+        'Más tiempo para resultados',
+        'Mayor aprovechamiento económico'
       ],
       popular: false,
       ahorro: precioSemestralBase - 210000,
       icon: FaFire,
       etiqueta: 'Más ahorro',
-      accent: 'from-zinc-700 via-red-500 to-red-300',
-      soft: 'border-zinc-400/22 bg-zinc-500/10 text-zinc-100 shadow-[0_0_26px_rgba(161,161,170,0.12)]',
+      accent: 'from-fuchsia-700 via-red-500 to-red-300',
+      glow: 'shadow-[0_18px_55px_rgba(244,63,94,0.16)]',
+      badge:
+        'border-fuchsia-300/20 bg-fuchsia-400/10 text-fuchsia-50 shadow-[0_0_28px_rgba(217,70,239,0.12)]',
       cta: 'Elegir este plan'
     }
   ];
 
-  const discFondo = encodeURIComponent(`
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>
-      <g fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='2'>
-        <circle cx='60' cy='60' r='44'/>
-        <circle cx='60' cy='60' r='28'/>
-        <circle cx='60' cy='60' r='10'/>
-      </g>
-      <g stroke='rgba(239,68,68,0.10)' stroke-width='1.4'>
-        <line x1='60' y1='8' x2='60' y2='22'/>
-        <line x1='60' y1='98' x2='60' y2='112'/>
-        <line x1='8' y1='60' x2='22' y2='60'/>
-        <line x1='98' y1='60' x2='112' y2='60'/>
-      </g>
-    </svg>
-  `);
-
-  const mancuernaSvg = encodeURIComponent(`
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
-      <g fill='none' stroke='rgba(255,255,255,0.78)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'>
-        <line x1='10' y1='32' x2='54' y2='32'/>
-        <rect x='6' y='24' width='6' height='16' rx='2' ry='2' fill='rgba(239,68,68,0.15)' stroke='rgba(255,255,255,0.58)'/>
-        <rect x='12' y='26' width='6' height='12' rx='2' ry='2' fill='rgba(255,255,255,0.08)'/>
-        <rect x='52' y='24' width='6' height='16' rx='2' ry='2' fill='rgba(239,68,68,0.15)' stroke='rgba(255,255,255,0.58)'/>
-        <rect x='46' y='26' width='6' height='12' rx='2' ry='2' fill='rgba(255,255,255,0.08)'/>
-      </g>
-    </svg>
-  `);
-
   return (
     <section
       ref={contenedorRef}
-      className="relative isolate overflow-hidden bg-black text-white py-20 sm:py-24 lg:py-30"
+      className="relative isolate overflow-hidden bg-[#050505] py-16 text-white sm:py-20"
     >
       <ParticlesBackground />
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.18),transparent_26%),linear-gradient(180deg,#050505_0%,#0a0a0b_46%,#040404_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.24),transparent_26%),linear-gradient(180deg,#070707_0%,#0b0b0d_46%,#050505_100%)]" />
+
+      <div className="pointer-events-none absolute -top-12 left-[10%] h-72 w-72 rounded-full bg-red-500/18 blur-3xl" />
+      <div className="pointer-events-none absolute top-[20%] right-[8%] h-80 w-80 rounded-full bg-orange-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-red-400/8 blur-3xl" />
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.16]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml;utf8,${discFondo}")`,
-          backgroundSize: '180px 180px',
-          backgroundRepeat: 'repeat',
-          maskImage:
-            'radial-gradient(circle at center, rgba(0,0,0,1) 34%, rgba(0,0,0,0.18) 74%, transparent 100%)',
-          WebkitMaskImage:
-            'radial-gradient(circle at center, rgba(0,0,0,1) 34%, rgba(0,0,0,0.18) 74%, transparent 100%)'
-        }}
-      />
-
-      <div className="pointer-events-none absolute -top-16 -left-20 h-[28rem] w-[28rem] rounded-full bg-red-600/18 blur-3xl" />
-      <div className="pointer-events-none absolute top-[24%] -right-16 h-[30rem] w-[30rem] rounded-full bg-red-500/14 blur-3xl" />
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage:
             'linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px)',
           backgroundSize: '42px 42px'
         }}
       />
-
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[24%] size-[60vmin] max-h-[560px] max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-        <div className="absolute left-1/2 top-[24%] size-[44vmin] max-h-[420px] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-red-500/14" />
-
-        <div className="absolute left-1/2 top-[24%] size-[60vmin] max-h-[560px] max-w-[560px] -translate-x-1/2 -translate-y-1/2 animate-[orbit_28s_linear_infinite]">
-          {[
-            'left-1/2 top-0 -translate-x-1/2 -translate-y-1/2',
-            'right-0 top-1/2 translate-x-1/2 -translate-y-1/2',
-            'left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2',
-            'left-0 top-1/2 -translate-x-1/2 -translate-y-1/2'
-          ].map((position, index) => (
-            <div
-              key={`orbit-${index}`}
-              className={`absolute ${position}`}
-              style={{
-                width: '38px',
-                height: '38px',
-                backgroundImage: `url("data:image/svg+xml;utf8,${mancuernaSvg}")`,
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                filter: 'drop-shadow(0 0 12px rgba(239,68,68,0.18))'
-              }}
-            />
-          ))}
-        </div>
-      </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -260,23 +197,23 @@ const PlanesDePrecios = () => {
             variants={itemV}
             className="mx-auto max-w-4xl text-center"
           >
-            <div className="inline-flex items-center gap-3 rounded-full border border-red-500/20 bg-white/5 px-4 py-2 backdrop-blur-md shadow-[0_0_24px_rgba(239,68,68,0.08)]">
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-400 animate-pulse" />
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.24em] text-red-200/90">
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/[0.07] px-4 py-2 backdrop-blur-md shadow-[0_0_34px_rgba(255,255,255,0.04)]">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-400 shadow-[0_0_18px_rgba(248,113,113,0.95)]" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-red-100/90 sm:text-xs">
                 Altos Roca Gym · Membresías
               </span>
             </div>
 
-            <h2 className="mt-6 font-bignoodle text-5xl sm:text-6xl md:text-7xl lg:text-[5.2rem] leading-[0.92] uppercase tracking-[0.05em] text-white">
+            <h2 className="mt-6 font-bignoodle text-5xl uppercase leading-[0.92] tracking-[0.05em] text-white sm:text-6xl md:text-7xl">
               Elegí tu
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-red-700 drop-shadow-[0_0_18px_rgba(239,68,68,0.24)]">
+              <span className="block bg-gradient-to-r from-red-300 via-white to-red-400 bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(255,255,255,0.18)]">
                 mejor plan
               </span>
             </h2>
 
-            <p className="mt-5 text-base sm:text-lg md:text-xl leading-relaxed text-white/70">
-              Distintas formas de entrenar con continuidad, según tu momento,
-              tus objetivos y el nivel de compromiso que querés asumir.
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/76 sm:text-lg">
+              Distintas opciones para entrenar con continuidad, más comodidad y
+              mejor relación entre tiempo, progreso y ahorro.
             </p>
           </motion.div>
 
@@ -286,20 +223,20 @@ const PlanesDePrecios = () => {
           >
             {[
               'Acceso al gym',
-              'Acompañamiento en sala',
-              'Opciones flexibles',
-              'Más ahorro en planes largos'
+              'Planes flexibles',
+              'Más ahorro en planes largos',
+              'Seguimiento y continuidad'
             ].map((chip) => (
               <span
                 key={chip}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] sm:text-xs font-medium uppercase tracking-[0.16em] text-white/82 backdrop-blur-md transition-all duration-300 hover:border-red-500/24 hover:bg-red-500/[0.08] hover:text-white"
+                className="rounded-full border border-white/14 bg-white/[0.07] px-4 py-2 text-[11px] font-medium uppercase tracking-[0.16em] text-white/86 backdrop-blur-md transition-all duration-300 hover:border-red-400/28 hover:bg-red-500/[0.10] hover:text-white sm:text-xs"
               >
                 {chip}
               </span>
             ))}
           </motion.div>
 
-          <div className="mt-14 grid grid-cols-1 gap-6 xl:grid-cols-3 xl:items-stretch">
+          <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
             {planes.map((plan, indice) => {
               const IconoPlan = plan.icon;
               const imgFondo = imagenesRandom[indice];
@@ -311,167 +248,148 @@ const PlanesDePrecios = () => {
                 <motion.article
                   key={plan.titulo}
                   variants={itemV}
-                  whileHover={{
-                    y: -6,
-                    rotateX: plan.popular ? -2 : -3,
-                    rotateY: plan.popular ? 2 : 3
-                  }}
-                  whileTap={{ scale: 0.995 }}
+                  whileHover={{ y: -6, scale: 1.01 }}
                   transition={{
                     type: 'spring',
                     stiffness: 180,
                     damping: 18,
-                    mass: 0.6
+                    mass: 0.7
                   }}
                   className={[
-                    'group relative overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.045] backdrop-blur-2xl shadow-[0_24px_70px_rgba(0,0,0,0.42)] [transform-style:preserve-3d]',
+                    'group relative overflow-hidden rounded-[28px] border border-white/14 bg-white/[0.09] backdrop-blur-2xl',
+                    plan.glow,
                     plan.popular
-                      ? 'xl:-translate-y-4 xl:scale-[1.03] shadow-[0_28px_80px_rgba(0,0,0,0.50)]'
-                      : ''
+                      ? 'ring-1 ring-orange-300/22 lg:-translate-y-2'
+                      : 'ring-1 ring-white/6'
                   ].join(' ')}
                 >
                   <img
                     src={imgFondo}
                     alt={`Plan ${plan.titulo}`}
-                    className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.12] pointer-events-none select-none"
+                    className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-[0.16]"
                     style={{
-                      filter: 'blur(1.6px) saturate(1.05) contrast(1.02)'
+                      filter: 'blur(1px) saturate(1.06) brightness(0.9)'
                     }}
                     aria-hidden
                   />
 
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.02)_24%,rgba(0,0,0,0.08)_100%)]" />
                   <div
                     className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${plan.accent}`}
                   />
-
-                  <div className="absolute -top-16 right-6 h-36 w-36 rounded-full bg-red-500/10 blur-3xl" />
-                  <div className="absolute -bottom-16 left-6 h-36 w-36 rounded-full bg-red-500/8 blur-3xl" />
-
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-[30px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
-                  />
+                  <div className="pointer-events-none absolute -right-10 top-0 h-28 w-28 rounded-full bg-white/12 blur-2xl" />
+                  <div className="pointer-events-none absolute left-6 top-6 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
 
                   {plan.popular && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8, rotate: 6 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="absolute right-5 top-5 z-20"
-                    >
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-gradient-to-r from-red-700 via-red-500 to-orange-400 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white shadow-[0_14px_30px_rgba(0,0,0,0.26)]">
+                    <div className="absolute right-4 top-4 z-20">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-gradient-to-r from-red-700 via-red-500 to-orange-400 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)]">
                         <FaCrown className="text-[10px]" />
                         Más elegido
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
-                  <div className="relative z-10 flex h-full flex-col p-6 sm:p-7">
+                  <div className="relative z-10 flex h-full flex-col p-5 sm:p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div
                         className={[
-                          'flex h-14 w-14 items-center justify-center rounded-[20px] border',
-                          plan.soft
+                          'flex h-12 w-12 items-center justify-center rounded-[18px] border',
+                          plan.badge
                         ].join(' ')}
                       >
-                        <IconoPlan className="text-xl" />
+                        <IconoPlan className="text-lg" />
                       </div>
 
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/62">
+                      <span className="rounded-full border border-white/12 bg-white/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75">
                         {plan.etiqueta}
                       </span>
                     </div>
 
-                    <div className="mt-6">
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
+                    <div className="mt-5">
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-red-100/84">
                         Altos Roca Gym
                       </div>
 
-                      <h3 className="mt-2 text-3xl sm:text-4xl font-bignoodle uppercase tracking-[0.05em] text-white">
+                      <h3 className="mt-2 font-bignoodle text-3xl uppercase tracking-[0.05em] text-white sm:text-[2.1rem]">
                         Plan {plan.titulo}
                       </h3>
 
-                      <p className="mt-2 text-sm sm:text-base text-white/62">
+                      <p className="mt-1 text-sm text-white/68 sm:text-base">
                         {plan.subtitulo}
                       </p>
                     </div>
 
-                    <div className="mt-6 rounded-[24px] border border-white/10 bg-black/28 p-5">
+                    <div className="mt-5 rounded-[22px] border border-white/12 bg-white/[0.08] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]">
                       <div className="flex items-end gap-3">
-                        <span className="text-4xl sm:text-5xl font-black tracking-tight text-white">
+                        <span className="text-4xl font-black tracking-tight text-white sm:text-[2.8rem]">
                           ${formatearARS(plan.total)}
                         </span>
-                        <span className="pb-1 text-sm uppercase tracking-[0.14em] text-white/50">
+                        <span className="pb-1 text-xs uppercase tracking-[0.14em] text-white/56 sm:text-sm">
                           total
                         </span>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-white/60">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-white/68">
                         <div className="flex items-center gap-2">
-                          <FaClock className="text-red-300 text-xs" />
+                          <FaClock className="text-xs text-red-200" />
                           <span>{plan.detallePeriodo}</span>
                         </div>
 
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/66">
-                          Equivale a ${formatearARS(equivalenteMensual)}/mes
+                        <span className="rounded-full border border-white/12 bg-black/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/74">
+                          ${formatearARS(equivalenteMensual)}/mes
                         </span>
                       </div>
 
-                      {plan.ahorro ? (
-                        <div className="mt-3 inline-flex rounded-full border border-emerald-400/18 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
-                          Ahorrás ${formatearARS(plan.ahorro)}
-                        </div>
-                      ) : (
-                        <div className="mt-3 inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-white/56">
-                          Ideal para empezar
-                        </div>
-                      )}
+                      <div className="mt-3">
+                        {plan.ahorro ? (
+                          <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/12 px-3 py-1 text-[11px] font-semibold text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,0.12)]">
+                            Ahorrás ${formatearARS(plan.ahorro)}
+                          </div>
+                        ) : (
+                          <div className="inline-flex rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-[11px] font-semibold text-white/66">
+                            Ideal para empezar
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/74">
+                    <p className="mt-5 text-sm leading-relaxed text-white/78 sm:text-[15px]">
                       {plan.descripcion}
                     </p>
 
-                    <div className="mt-6 space-y-3 flex-1">
-                      {plan.beneficios.map((beneficio, idx) => (
-                        <motion.div
+                    <div className="mt-5 grid gap-2.5">
+                      {plan.beneficios.map((beneficio) => (
+                        <div
                           key={beneficio}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.14 + idx * 0.05 }}
-                          className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 transition-all duration-300 hover:border-red-500/22 hover:bg-red-500/[0.05]"
+                          className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 transition-all duration-300 hover:border-red-400/22 hover:bg-red-500/[0.06]"
                         >
-                          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-red-500/18 bg-red-500/10 text-red-300">
-                            <FaCheck className="text-xs" />
+                          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-500/14 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.12)]">
+                            <FaCheck className="text-[10px]" />
                           </div>
 
-                          <span className="text-sm leading-relaxed text-white/82">
+                          <span className="text-sm leading-relaxed text-white/84">
                             {beneficio}
                           </span>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
 
-                    <div className="mt-7">
+                    <div className="mt-6">
                       <NavLink to="/turnos" className="block w-full">
                         {plan.popular ? (
-                          <button className="btn-logo btn-logo--lg w-full">
-                            <span className="btn-logo__text inline-flex items-center justify-center gap-2">
+                          <button className="w-full rounded-2xl bg-gradient-to-r from-red-700 via-red-500 to-orange-400 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(239,68,68,0.32)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_22px_56px_rgba(239,68,68,0.38)]">
+                            <span className="inline-flex items-center justify-center gap-2">
                               {plan.cta}
                               <FaArrowRight className="text-sm" />
                             </span>
                           </button>
                         ) : (
-                          <motion.button
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            className="w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white/88 backdrop-blur-md transition-all duration-300 hover:border-red-500/28 hover:bg-red-500/10 hover:text-white"
-                          >
+                          <button className="w-full rounded-2xl border border-white/14 bg-white/[0.08] px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.14em] text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 hover:border-red-400/28 hover:bg-red-500/[0.10] hover:text-white">
                             <span className="inline-flex items-center justify-center gap-2">
                               {plan.cta}
                               <FaArrowRight className="text-xs" />
                             </span>
-                          </motion.button>
+                          </button>
                         )}
                       </NavLink>
                     </div>
@@ -482,16 +400,6 @@ const PlanesDePrecios = () => {
           </div>
         </motion.div>
       </div>
-
-      <style>{`
-        @keyframes orbit {
-          to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        .animate-[orbit_28s_linear_infinite] {
-          animation: orbit 28s linear infinite;
-        }
-      `}</style>
     </section>
   );
 };
