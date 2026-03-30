@@ -1,7 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { FaUser, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import {
+  FaUser,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaUsers,
+  FaUserShield,
+  FaChalkboardTeacher,
+  FaBuilding
+} from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import ParticlesBackground from '../../components/ParticlesBackground';
 import ButtonBack from '../../components/ButtonBack';
@@ -16,144 +25,214 @@ Modal.setAppElement('#root');
 
 export default function UsuariosGet() {
   const [usuarios, setUsuarios] = useState([]);
-  const [locales, setLocales] = useState([]);
+  const [sedes, setSedes] = useState([]);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+
   const [formData, setFormData] = useState({
-    nombre: '',
+    name: '',
     email: '',
     password: '',
     rol: 'admin',
-    local_id: '',
-    es_reemplazante: false // nuevo campo
+    sede_id: '',
+    state: 'activo',
+    es_reemplazante: false
   });
 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordValid, setPasswordValid] = useState(true);
 
-  // helpers
-  const allowedRoles = ['admin', 'Socio', 'vendedor', 'instructor'];
+  const usuarioId = getUserId();
+
+  const { userRol, userLevel, userSedeId, userLocalId, userName } = useAuth();
+
+  const rolActual = String(userRol || userLevel || '').toLowerCase();
+  const sedeActualId = Number(userSedeId || userLocalId || 0) || null;
+  const puedeGestionarTodasLasSedes = ['admin', 'socio'].includes(rolActual);
+
+  // Benjamin Orellana - 29 / 03 / 2026 - Se normalizan roles permitidos a minúsculas para alinearlos con el backend nuevo
+  const allowedRoles = ['admin', 'socio', 'vendedor', 'instructor'];
+
   const passPolicyOk = (pwd) => {
     if (!pwd || pwd.length < 8) return false;
     const hasUpper = /[A-Z]/.test(pwd);
     const hasLower = /[a-z]/.test(pwd);
     const hasNum = /\d/.test(pwd);
     const hasSym = /[^A-Za-z0-9]/.test(pwd);
-    // mínimo: 8 y al menos 3 tipos
     const score = [hasUpper, hasLower, hasNum, hasSym].filter(Boolean).length;
     return score >= 3;
   };
 
-  const usuarioId = getUserId();
-  // RELACION AL FILTRADO BENJAMIN ORELLANA 24-04-25
-  const [rolFiltro, setRolFiltro] = useState('todos');
-  const [localFiltro, setLocalFiltro] = useState('todos');
-  // RELACION AL FILTRADO BENJAMIN ORELLANA 24-04-25
+  const getUsuarioNombre = (u) => u?.name || u?.nombre || '-';
+  const getUsuarioRol = (u) =>
+    String(u?.rol || u?.level || '').toLowerCase() || '-';
+  const getUsuarioSedeId = (u) =>
+    Number(u?.sede_id || u?.local_id || u?.sedeRelacion?.id || 0) || null;
+  const getUsuarioSedeNombre = (u) =>
+    u?.sedeRelacion?.nombre ||
+    u?.sede_relacion?.nombre ||
+    u?.sede ||
+    sedes.find((s) => s.id === getUsuarioSedeId(u))?.nombre ||
+    '-';
 
   const fetchUsuarios = async () => {
     try {
-      const res = await axiosWithAuth().get('/usuarios');
-      setUsuarios(res.data);
+      const client = axiosWithAuth();
+
+      const params = {};
+      if (!puedeGestionarTodasLasSedes && sedeActualId) {
+        params.sede_id = sedeActualId;
+      }
+
+      const res = await client.get('/users', { params });
+      setUsuarios(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(
         'Error al obtener usuarios:',
         error.response?.data || error.message
       );
+      setUsuarios([]);
     }
   };
 
-  const fetchLocales = async () => {
+  const fetchSedes = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/locales');
-      setLocales(res.data);
+      const res = await axios.get('http://localhost:8080/sedes');
+      setSedes(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error('Error al obtener locales:', error);
+      console.error('Error al obtener sedes:', error);
+      setSedes([]);
     }
   };
 
   useEffect(() => {
     fetchUsuarios();
-    fetchLocales();
-  }, []);
+    fetchSedes();
+  }, [puedeGestionarTodasLasSedes, sedeActualId]);
+
+  const [rolFiltro, setRolFiltro] = useState('todos');
+  const [sedeFiltro, setSedeFiltro] = useState(
+    puedeGestionarTodasLasSedes ? 'todos' : String(sedeActualId || 'todos')
+  );
+
+  useEffect(() => {
+    if (!puedeGestionarTodasLasSedes && sedeActualId) {
+      setSedeFiltro(String(sedeActualId));
+    }
+  }, [puedeGestionarTodasLasSedes, sedeActualId]);
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      rol: 'admin',
+      sede_id: puedeGestionarTodasLasSedes ? '' : sedeActualId || '',
+      state: 'activo',
+      es_reemplazante: false
+    });
+    setConfirmPassword('');
+    setPasswordValid(true);
+  };
 
   const openModal = (usuario = null) => {
     if (usuario) {
       setEditId(usuario.id);
       setFormData({
-        nombre: usuario.nombre,
-        email: usuario.email,
+        name: usuario.name || usuario.nombre || '',
+        email: usuario.email || '',
         password: '',
-        rol: usuario.rol,
-        local_id: usuario.local_id || '',
-        es_reemplazante: !!usuario.es_reemplazante //  nuevo campo
+        rol: getUsuarioRol(usuario) || 'admin',
+        sede_id: getUsuarioSedeId(usuario) || '',
+        state: usuario.state || 'activo',
+        es_reemplazante: !!usuario.es_reemplazante
       });
+      setConfirmPassword('');
+      setPasswordValid(true);
     } else {
       setEditId(null);
-      setFormData({
-        nombre: '',
-        email: '',
-        password: '',
-        rol: 'admin',
-        local_id: '',
-        es_reemplazante: false // nuevo campo
-      });
+      resetForm();
     }
+
     setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditId(null);
+    resetForm();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const client = axiosWithAuth();
 
-      // Saneo rol por si acaso
-      let rol = formData.rol;
+      let rol = String(formData.rol || '')
+        .toLowerCase()
+        .trim();
       if (!allowedRoles.includes(rol)) rol = 'admin';
 
-      const payload = {
-        ...formData,
-        rol,
-        usuario_log_id: usuarioId,
-        local_id: formData.local_id ? Number(formData.local_id) : null,
-        es_reemplazante: !!formData.es_reemplazante
-      };
+      const sedeIdNormalizada =
+        Number(formData.sede_id || 0) || Number(sedeActualId || 0) || null;
 
-      // Validaciones con SweetAlert2
-      if (!formData.nombre.trim()) {
+      const sedeSeleccionada = sedes.find((s) => s.id === sedeIdNormalizada);
+
+      if (!String(formData.name || '').trim()) {
         await Swal.fire('FALTAN DATOS', 'El nombre es obligatorio.', 'warning');
         return;
       }
-      if (!formData.email.trim()) {
+
+      if (!String(formData.email || '').trim()) {
         await Swal.fire('FALTAN DATOS', 'El email es obligatorio.', 'warning');
         return;
       }
 
+      if (!sedeIdNormalizada) {
+        await Swal.fire(
+          'FALTAN DATOS',
+          'Debes seleccionar una sede.',
+          'warning'
+        );
+        return;
+      }
+
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        rol,
+        level: rol,
+        sede_id: sedeIdNormalizada,
+        sede: sedeSeleccionada?.nombre || null,
+        state: formData.state || 'activo',
+        usuario_log_id: usuarioId,
+        es_reemplazante: !!formData.es_reemplazante
+      };
+
       if (editId) {
-        // EDICIÓN
-        if (!payload.password) {
-          delete payload.password; // no tocar pass
-        } else {
-          // Si quiere cambiar pass: validar política
-          if (!passPolicyOk(payload.password)) {
+        if (formData.password && String(formData.password).trim() !== '') {
+          if (!passPolicyOk(formData.password)) {
             await Swal.fire(
               'CONTRASEÑA DÉBIL',
-              'Usá al menos 8 caracteres y combina mayúsculas, minúsculas, números y símbolos.',
+              'Usá al menos 8 caracteres y combiná mayúsculas, minúsculas, números y símbolos.',
               'error'
             );
             return;
           }
+          payload.password = formData.password;
         }
 
-        await client.put(`/usuarios/${editId}`, payload);
+        await client.put(`/users/${editId}`, payload);
+
         await Swal.fire(
           'ACTUALIZADO',
-          'Usuario actualizado correctamente',
+          'El usuario se actualizó correctamente.',
           'success'
         );
       } else {
-        // ALTA
-        if (!payload.password) {
+        if (!formData.password) {
           await Swal.fire(
             'FALTAN DATOS',
             'La contraseña es obligatoria para crear el usuario.',
@@ -161,7 +240,8 @@ export default function UsuariosGet() {
           );
           return;
         }
-        if (!passwordValid || payload.password !== confirmPassword) {
+
+        if (!passwordValid || formData.password !== confirmPassword) {
           await Swal.fire(
             'REVISÁ LA CONTRASEÑA',
             'Las contraseñas no coinciden.',
@@ -169,23 +249,29 @@ export default function UsuariosGet() {
           );
           return;
         }
-        if (!passPolicyOk(payload.password)) {
+
+        if (!passPolicyOk(formData.password)) {
           await Swal.fire(
-            'CONTRASEÑA DÉBIl',
-            'Usá al menos 8 caracteres y combina mayúsculas, minúsculas, números y símbolos.',
+            'CONTRASEÑA DÉBIL',
+            'Usá al menos 8 caracteres y combiná mayúsculas, minúsculas, números y símbolos.',
             'error'
           );
           return;
         }
 
-        await client.post('/usuarios', payload);
-        await Swal.fire('CREADO', 'Usuario creado correctamente', 'success');
+        payload.password = formData.password;
+
+        await client.post('/users', payload);
+
+        await Swal.fire(
+          'CREADO',
+          'El usuario se creó correctamente.',
+          'success'
+        );
       }
 
-      fetchUsuarios();
-      setModalOpen(false);
-      // limpiar confirm al cerrar
-      setConfirmPassword('');
+      await fetchUsuarios();
+      closeModal();
     } catch (err) {
       console.error('Error al guardar usuario:', err);
       await Swal.fire(
@@ -197,74 +283,235 @@ export default function UsuariosGet() {
   };
 
   const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: '¿Eliminar usuario?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc2626',
+      background: '#0f0f10',
+      color: '#ffffff'
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       const client = axiosWithAuth();
-      await client.delete(`/usuarios/${id}`, {
+
+      await client.delete(`/users/${id}`, {
         data: { usuario_log_id: usuarioId }
       });
-      fetchUsuarios();
+
+      await Swal.fire({
+        title: 'ELIMINADO',
+        text: 'El usuario se eliminó correctamente.',
+        icon: 'success',
+        confirmButtonColor: '#dc2626',
+        background: '#0f0f10',
+        color: '#ffffff'
+      });
+
+      await fetchUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
+      await Swal.fire(
+        'ERROR',
+        err?.response?.data?.mensajeError ||
+          'Ocurrió un error al eliminar el usuario.',
+        'error'
+      );
     }
   };
 
-  const filtered = usuarios.filter((u) => {
-    const coincideTexto = [u.nombre, u.email, u.rol].some((f) =>
-      f?.toLowerCase().includes(search.toLowerCase())
-    );
+  const filtered = useMemo(() => {
+    return usuarios.filter((u) => {
+      const coincideTexto = [
+        getUsuarioNombre(u),
+        u?.email || '',
+        getUsuarioRol(u),
+        getUsuarioSedeNombre(u)
+      ].some((f) => String(f).toLowerCase().includes(search.toLowerCase()));
 
-    const coincideRol = rolFiltro === 'todos' || u.rol === rolFiltro;
-    const coincideLocal =
-      localFiltro === 'todos' || u.local_id === parseInt(localFiltro);
+      const coincideRol =
+        rolFiltro === 'todos' || getUsuarioRol(u) === rolFiltro;
 
-    return coincideTexto && coincideRol && coincideLocal;
-  });
+      const coincideSede =
+        sedeFiltro === 'todos' ||
+        getUsuarioSedeId(u) === Number(sedeFiltro || 0);
+
+      return coincideTexto && coincideRol && coincideSede;
+    });
+  }, [usuarios, search, rolFiltro, sedeFiltro, sedes]);
+
+  const stats = useMemo(() => {
+    return {
+      total: filtered.length,
+      admins: filtered.filter((u) => getUsuarioRol(u) === 'admin').length,
+      instructores: filtered.filter((u) => getUsuarioRol(u) === 'instructor')
+        .length,
+      sedes: new Set(filtered.map((u) => getUsuarioSedeId(u)).filter(Boolean))
+        .size
+    };
+  }, [filtered]);
 
   return (
     <>
-      <NavbarStaff></NavbarStaff>
-      <div className="min-h-screen bg-gradient-to-br from-[#1f2937] via-[#111827] to-[#000000] py-12 px-6 text-white relative font-sans">
+      <NavbarStaff />
+      <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,rgba(220,38,38,0.14),transparent_28%),linear-gradient(135deg,#050505_0%,#111111_40%,#190909_100%)] px-4 py-8 text-white sm:px-6 lg:px-8">
         <ParticlesBackground />
         <ButtonBack />
 
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-10">
-            <h1 className="text-4xl titulo uppercase font-extrabold text-white flex items-center gap-3 drop-shadow-xl">
-              <FaUser className="text-indigo-400" /> Gestión de Usuarios
-            </h1>
-            <button
-              onClick={() => openModal()}
-              className="bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-md"
-            >
-              <FaPlus /> Nuevo Usuario
-            </button>
-          </div>
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.05] shadow-[0_25px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+          >
+            <div className="h-1.5 w-full bg-gradient-to-r from-red-800 via-red-500 to-red-300" />
 
-          <div className="w-full bg-gray-900 p-4 rounded-xl shadow-md mb-6">
-            <h2 className="text-white text-lg font-semibold mb-4">Filtros</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Filtro de texto */}
+            <div className="grid gap-6 px-6 py-7 lg:grid-cols-[1.35fr,0.65fr] lg:px-8">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-200">
+                  Altos Roca Gym
+                </div>
+
+                <h1 className="titulo mt-4 flex items-center gap-3 text-3xl font-extrabold uppercase tracking-tight text-white sm:text-4xl">
+                  <FaUser className="text-red-400" />
+                  Gestión de usuarios
+                </h1>
+
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-[15px]">
+                  Administrá el staff por sede, controlá accesos y mantené cada
+                  perfil alineado a la operación real de Altos Roca.
+                </p>
+
+                <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/70">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2">
+                    Usuario actual:{' '}
+                    <span className="font-semibold text-white">
+                      {userName || '-'}
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2">
+                    Rol:{' '}
+                    <span className="font-semibold capitalize text-white">
+                      {rolActual || '-'}
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2">
+                    Sede:{' '}
+                    <span className="font-semibold text-white">
+                      {sedes.find((s) => s.id === sedeActualId)?.nombre ||
+                        'Sin sede'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.18em] text-white/45">
+                      Total
+                    </span>
+                    <FaUsers className="text-red-300" />
+                  </div>
+                  <div className="mt-3 text-3xl font-black text-white">
+                    {stats.total}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.18em] text-white/45">
+                      Admins
+                    </span>
+                    <FaUserShield className="text-red-300" />
+                  </div>
+                  <div className="mt-3 text-3xl font-black text-white">
+                    {stats.admins}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.18em] text-white/45">
+                      Instructores
+                    </span>
+                    <FaChalkboardTeacher className="text-red-300" />
+                  </div>
+                  <div className="mt-3 text-3xl font-black text-white">
+                    {stats.instructores}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.18em] text-white/45">
+                      Sedes visibles
+                    </span>
+                    <FaBuilding className="text-red-300" />
+                  </div>
+                  <div className="mt-3 text-3xl font-black text-white">
+                    {stats.sedes}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+            className="mb-6 rounded-[30px] border border-white/10 bg-white/[0.05] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.30)] backdrop-blur-xl"
+          >
+            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white">
+                  Filtros y búsqueda
+                </h2>
+                <p className="mt-1 text-sm text-white/60">
+                  Buscá usuarios por nombre, email, rol o sede.
+                </p>
+              </div>
+
+              <button
+                onClick={() => openModal()}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-800 via-red-600 to-red-400 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(220,38,38,0.26)] transition-all duration-300 hover:scale-[1.01]"
+              >
+                <FaPlus />
+                Nuevo usuario
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-white/75">
                   Buscar
                 </label>
                 <input
                   type="text"
-                  placeholder="Nombre, email o rol..."
+                  placeholder="Nombre, email, rol o sede..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/80"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/30 outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
                 />
               </div>
 
-              {/* Filtro por rol */}
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Rol</label>
+                <label className="mb-2 block text-sm font-medium text-white/75">
+                  Rol
+                </label>
                 <select
                   value={rolFiltro}
                   onChange={(e) => setRolFiltro(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/80"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
                 >
                   <option value="todos">Todos</option>
                   <option value="admin">Admin</option>
@@ -274,222 +521,269 @@ export default function UsuariosGet() {
                 </select>
               </div>
 
-              {/* Filtro por local */}
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Sede</label>
+                <label className="mb-2 block text-sm font-medium text-white/75">
+                  Sede
+                </label>
                 <select
-                  value={localFiltro}
-                  onChange={(e) => setLocalFiltro(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/80"
+                  value={sedeFiltro}
+                  onChange={(e) => setSedeFiltro(e.target.value)}
+                  disabled={!puedeGestionarTodasLasSedes}
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <option value="todos">Todos</option>
-                  {locales.map((local) => (
-                    <option key={local.id} value={local.id}>
-                      {local.nombre}
+                  {puedeGestionarTodasLasSedes && (
+                    <option value="todos">Todas las sedes</option>
+                  )}
+
+                  {sedes.map((sede) => (
+                    <option key={sede.id} value={sede.id}>
+                      {sede.nombre}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
-          </div>
-          <div className="overflow-x-auto rounded-3xl shadow-2xl ring-1 ring-white/10 bg-slate-950/80 backdrop-blur-xl">
-            <table className="w-full text-base md:text-[15px] text-left text-slate-200">
-              <thead className="uppercase bg-indigo-600/90 text-white sticky top-0 z-10">
-                <tr className="text-[13px] tracking-wide">
-                  <th className="px-6 py-4">Nombre</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Rol</th>
-                  <th className="px-6 py-4">Sede</th>
-                  {/* <th className="px-6 py-4">Reemplazante</th> nuevo */}
-                  <th className="px-6 py-4 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((u, i) => (
-                  <tr
-                    key={u.id}
-                    className={` border-t border-white/10 ${
-                      i % 2 === 0 ? 'bg-white/[0.03]' : 'bg-white/[0.05]'
-                    } hover:bg-white/10 transition-colors`}
-                  >
-                    <td className="text-purple-400 px-6 py-4 font-semibold ">
-                      {u.nombre}
-                    </td>
-                    <td className="text-purple-400 px-6 py-4 ">{u.email}</td>
-                    <td className="text-purple-400 px-6 py-4 capitalize ">
-                      {u.rol}
-                    </td>
-                    <td className="text-purple-400 px-6 py-4 ">
-                      {locales.find((l) => l.id === u.local_id)?.nombre || '-'}
-                    </td>
+          </motion.div>
 
-                    {/* pill
-          <td className="px-6 py-3">
-            <div className="flex justify-center">
-              {u.es_reemplazante ? (
-                <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />{' '}
-                  Sí
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30">
-                  <span className="w-2 h-2 rounded-full bg-rose-400" />{' '}
-                  No
-                </span>
-              )}
-            </div>
-          </td> */}
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-3">
-                        <button
-                          onClick={() => openModal(u)}
-                          className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-white/10 text-yellow-300 hover:bg-yellow-400/10 hover:text-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                          aria-label="Editar"
-                          title="Editar"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(u.id)}
-                          className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-white/10 text-rose-300 hover:bg-rose-400/10 hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400/40"
-                          aria-label="Eliminar"
-                          title="Eliminar"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+            className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.05] shadow-[0_25px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[860px] text-left text-sm text-white/85">
+                <thead className="bg-gradient-to-r from-red-900/90 via-red-700/80 to-red-500/70 text-white">
+                  <tr className="text-[12px] uppercase tracking-[0.18em]">
+                    <th className="px-6 py-4">Usuario</th>
+                    <th className="px-6 py-4">Email</th>
+                    <th className="px-6 py-4">Rol</th>
+                    <th className="px-6 py-4">Sede</th>
+                    <th className="px-6 py-4">Estado</th>
+                    <th className="px-6 py-4 text-center">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody>
+                  {filtered.length > 0 ? (
+                    filtered.map((u, i) => (
+                      <tr
+                        key={u.id}
+                        className={`border-t border-white/10 transition-colors duration-200 hover:bg-white/[0.06] ${
+                          i % 2 === 0 ? 'bg-white/[0.02]' : 'bg-white/[0.035]'
+                        }`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-white">
+                            {getUsuarioNombre(u)}
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4 text-white/78">{u.email}</td>
+
+                        <td className="px-6 py-4">
+                          <span className="inline-flex rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-red-200">
+                            {getUsuarioRol(u)}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 text-white/82">
+                          {getUsuarioSedeNombre(u)}
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
+                              String(u.state || '').toLowerCase() === 'activo'
+                                ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
+                                : 'border border-zinc-400/20 bg-zinc-500/10 text-zinc-200'
+                            }`}
+                          >
+                            {u.state || 'activo'}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <div className="flex justify-center gap-3">
+                            <button
+                              onClick={() => openModal(u)}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-amber-300 transition-all duration-200 hover:bg-amber-400/10 hover:text-amber-200"
+                              aria-label="Editar"
+                              title="Editar"
+                            >
+                              <FaEdit />
+                            </button>
+
+                            <button
+                              onClick={() => handleDelete(u.id)}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-rose-300 transition-all duration-200 hover:bg-rose-400/10 hover:text-rose-200"
+                              aria-label="Eliminar"
+                              title="Eliminar"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="px-6 py-12 text-center text-white/55"
+                      >
+                        No se encontraron usuarios con los filtros actuales.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
 
           <Modal
             isOpen={modalOpen}
-            onRequestClose={() => setModalOpen(false)}
-            overlayClassName="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
-            className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 shadow-2xl border-l-4 border-indigo-500"
+            onRequestClose={closeModal}
+            overlayClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+            className="w-full max-w-2xl rounded-[30px] border border-white/10 bg-[#0d0d0f] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.45)] outline-none"
           >
-            <h2 className="uppercase text-2xl font-bold mb-4 text-indigo-600">
-              {editId ? 'Editar Usuario' : 'Nuevo Usuario'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4 text-gray-800">
-              <input
-                type="text"
-                placeholder="Nombre"
-                value={formData.nombre}
-                onChange={(e) =>
-                  setFormData({ ...formData, nombre: e.target.value })
-                }
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300"
-              />
-              {/* ANTES
-            {!editId && (
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300"
-              />
-            )} */}
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-red-200">
+                  Altos Roca Gym
+                </div>
+                <h2 className="titulo mt-2 text-2xl font-bold uppercase text-white">
+                  {editId ? 'Editar usuario' : 'Nuevo usuario'}
+                </h2>
+                <p className="mt-2 text-sm text-white/58">
+                  Completá los datos del perfil y asignale su sede de trabajo.
+                </p>
+              </div>
+            </div>
 
-              <PasswordEditor
-                value={formData.password}
-                onChange={(val) => setFormData({ ...formData, password: val })}
-                showConfirm={!editId} // confirma SOLO en alta
-                confirmValue={confirmPassword}
-                onConfirmChange={setConfirmPassword}
-                onValidityChange={setPasswordValid} // 👈 opcional (match/mismatch)
-              />
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/78">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nombre del usuario"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white placeholder:text-white/28 outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.05]"
+                  />
+                </div>
 
-              <select
-                value={formData.rol}
-                onChange={(e) =>
-                  setFormData({ ...formData, rol: e.target.value })
-                }
-                className="w-full px-4 py-2 rounded-lg border border-gray-300"
-                required
-              >
-                <option value="admin">Admin</option>
-                <option value="socio">Socio</option>
-                <option value="vendedor">Vendedor</option>
-                <option value="instructor">Instructor</option>
-              </select>
-              <select
-                value={formData.local_id || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, local_id: e.target.value })
-                }
-                className="w-full px-4 py-2 rounded-lg border border-gray-300"
-                required
-              >
-                <option value="">Selecciona la Sede</option>
-                {locales.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.nombre}
-                  </option>
-                ))}
-              </select>
-              {/* 👇 Select moderno: es_reemplazante */}
-              {/* <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  ¿Habilitado para reemplazar?
-                </label>
-                <div className="relative">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/78">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="correo@empresa.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    required
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white placeholder:text-white/28 outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.05]"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4">
+                <PasswordEditor
+                  value={formData.password}
+                  onChange={(val) =>
+                    setFormData({ ...formData, password: val })
+                  }
+                  showConfirm={!editId}
+                  confirmValue={confirmPassword}
+                  onConfirmChange={setConfirmPassword}
+                  onValidityChange={setPasswordValid}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/78">
+                    Rol
+                  </label>
                   <select
-                    value={formData.es_reemplazante ? '1' : '0'}
+                    value={formData.rol}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        es_reemplazante: e.target.value === '1'
+                        rol: e.target.value.toLowerCase()
                       })
                     }
-                    className="
-          w-full appearance-none px-4 py-2 rounded-lg border border-gray-300
-          bg-white pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
-        "
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.05]"
                     required
                   >
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
+                    <option value="admin">Admin</option>
+                    <option value="socio">Socio</option>
+                    <option value="vendedor">Vendedor</option>
+                    <option value="instructor">Instructor</option>
                   </select>
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-gray-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.585l3.71-3.355a.75.75 0 111.02 1.1l-4.214 3.813a.75.75 0 01-1.012 0L5.25 8.33a.75.75 0 01-.02-1.06z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
                 </div>
-              </div> */}
-              <div className="text-right">
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/78">
+                    Sede
+                  </label>
+                  <select
+                    value={formData.sede_id || ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sede_id: e.target.value })
+                    }
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.05] disabled:cursor-not-allowed disabled:opacity-70"
+                    required
+                    disabled={!puedeGestionarTodasLasSedes}
+                  >
+                    <option value="">Seleccioná la sede</option>
+                    {sedes.map((sede) => (
+                      <option key={sede.id} value={sede.id}>
+                        {sede.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/78">
+                    Estado
+                  </label>
+                  <select
+                    value={formData.state}
+                    onChange={(e) =>
+                      setFormData({ ...formData, state: e.target.value })
+                    }
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.05]"
+                    required
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white/86 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.08]"
+                >
+                  Cancelar
+                </button>
+
                 <button
                   type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-700 px-6 py-2 text-white font-medium rounded-lg"
+                  className="rounded-2xl bg-gradient-to-r from-red-800 via-red-600 to-red-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(220,38,38,0.24)] transition-all duration-300 hover:scale-[1.01]"
                 >
                   {editId ? 'Actualizar' : 'Guardar'}
                 </button>

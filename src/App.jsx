@@ -15,7 +15,7 @@ import LoginForm from './components/login/LoginForm.jsx';
 // aqui dentro ponemos las rutas en las que no queremos mostrar el nav
 import { hiddenNavbarRoutes } from './Helpers/uiConfig';
 import UsuariosGet from './Pages/MetodosGets/UsuariosGet.jsx';
-import LocalesGet from './Pages/MetodosGets/LocalesGet.jsx';
+import LocalesGet from './Pages/Core/LocalesGet.jsx';
 import LogsSistema from './Pages/MetodosGets/LogsSistema.jsx';
 import LeadsGet from './Pages/MetodosGets/Leads/LeadsGet.jsx';
 import VentasProspectosGet from './Pages/MetodosGets/VentasProspectosGet.jsx';

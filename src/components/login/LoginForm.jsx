@@ -1,7 +1,7 @@
 /*
  * Programador: Benjamin Orellana
  * Fecha Actualización: 29 / 03 / 2026
- * Versión: 1.0
+ * Versión: 1.1
  *
  * Descripción:
  * Form de ingreso simplificado y optimizado para mobile.
@@ -10,6 +10,10 @@
  * Se mantiene la lógica existente de autenticación, modal de error,
  * video de fondo, particles y AuthContext, pero con una interfaz
  * mucho más limpia, compacta y responsive.
+ *
+ * Adaptación:
+ * Se ajusta la lógica del login para consumir el nuevo payload del backend
+ * y el nuevo AuthContext, sin modificar el diseño visual del componente.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -62,10 +66,6 @@ const LoginForm = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (isAlumno) localStorage.setItem('userLevel', 'alumno');
-  }, [isAlumno]);
-
   const toggleShowPassword = () => setShowPassword((s) => !s);
 
   const handleInput = (event) => {
@@ -75,7 +75,17 @@ const LoginForm = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const obtenerMensajeError = (error) => {
+    return (
+      error?.response?.data?.mensajeError ||
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      'Error al conectar con el servidor'
+    );
+  };
+
+  // Benjamin Orellana - 29 / 03 / 2026 - Se adapta el login al nuevo AuthContext y al nuevo payload del backend sin alterar el diseño
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const validationErrors = Validation(values, location.pathname);
@@ -93,42 +103,35 @@ const LoginForm = () => {
       ? { telefono: values.telefono, dni: values.dni }
       : { email: values.email, password: values.password };
 
-    axios
-      .post(endpoint, payload)
-      .then((res) => {
-        setLoading(false);
+    try {
+      const res = await axios.post(endpoint, payload);
+      const data = res?.data || {};
 
-        if (res?.data?.message === 'Success') {
-          if (isAlumno) {
-            loginAlumno(res.data.token, res.data.nomyape, res.data.id);
-            localStorage.setItem('userLevel', 'alumno');
-            navigate(`/miperfil/student/${res.data.id}`);
-          } else {
-            login(
-              res.data.token,
-              res.data.id,
-              res.data.nombre,
-              res.data.email,
-              res.data.rol,
-              res.data.local_id,
-              res.data.es_reemplazante ?? false
-            );
-            localStorage.setItem('userLevel', res.data.rol);
-            navigate('/dashboard');
-          }
+      if (data?.message === 'Success' || data?.ok === true) {
+        if (isAlumno) {
+          loginAlumno(data.token, data.nomyape, data.id);
+          navigate(`/miperfil/student/${data.id}`);
         } else {
-          setModalMessage(
-            res?.data?.error || 'Usuario o credenciales inválidas'
-          );
-          setIsModalOpen(true);
+          // Nuevo esquema: el AuthContext ya soporta recibir el response completo
+          login(data);
+          navigate('/dashboard');
         }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error('LOGIN ERROR', err);
-        setModalMessage('Error al conectar con el servidor');
+      } else {
+        setModalMessage(
+          data?.mensajeError ||
+            data?.error ||
+            data?.message ||
+            'Usuario o credenciales inválidas'
+        );
         setIsModalOpen(true);
-      });
+      }
+    } catch (err) {
+      console.error('LOGIN ERROR', err);
+      setModalMessage(obtenerMensajeError(err));
+      setIsModalOpen(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
