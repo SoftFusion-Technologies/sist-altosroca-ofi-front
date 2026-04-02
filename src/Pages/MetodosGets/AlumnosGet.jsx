@@ -12,17 +12,42 @@
  * Contacto: benjamin.orellanaof@gmail.com || 3863531891
  */
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import NavbarStaff from '../staff/NavbarStaff';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../Styles/MetodsGet/Tabla.css';
 import '../../Styles/staff/background.css';
 import FormAltaAlumno from '../../components/Forms/FormAltaAlumno';
 import { useAuth } from '../../AuthContext';
 import ParticlesBackground from '../../components/ParticlesBackground';
 import { formatearFecha } from '../../Helpers';
-import { useNavigate } from 'react-router-dom';
 import NotificationsHelps from './NotificationsHelps';
+import {
+  FaPlus,
+  FaSearch,
+  FaUserGraduate,
+  FaChalkboardTeacher,
+  FaListUl,
+  FaChevronLeft,
+  FaChevronRight,
+  FaEye,
+  FaEdit,
+  FaTrash,
+  FaIdCard,
+  FaPhoneAlt,
+  FaBullseye
+} from 'react-icons/fa';
+
+// Benjamin Orellana - 2026-04-02 - Rediseño completo del listado de alumnos para usar una tabla premium con identidad Altos Roca, manteniendo filtros, acciones y lógica existente.
+const fontTitle = {
+  fontFamily: 'var(--font-family-base, "Montserrat", sans-serif)'
+};
+const fontBody = {
+  fontFamily: 'var(--font-family-body, "MessinaRegular", sans-serif)'
+};
+const fontDisplay = {
+  fontFamily: 'var(--font-family-display, "BigNoodle", sans-serif)'
+};
 
 // Componente funcional que maneja la lógica relacionada con los alumnos
 const AlumnosGet = () => {
@@ -59,6 +84,7 @@ const AlumnosGet = () => {
   //Funcion de busqueda, en el cuadro
   const searcher = (e) => {
     setSearch(e.target.value);
+    setCurrentPage(1);
   };
 
   // helpers para evitar toLowerCase() sobre undefined o números
@@ -140,9 +166,11 @@ const AlumnosGet = () => {
     }
   };
 
-  const obtenerNombreProfesor = (userId) => {
-    const profesor = usuarios.find((u) => u.id === userId);
-    return profesor ? profesor.nombre : 'Sin asignar';
+  const obtenerNombreProfesor = (userIdAlumno) => {
+    const profesor = usuarios.find(
+      (u) => String(u.id) === String(userIdAlumno)
+    );
+    return profesor ? profesor.nombre || profesor.name : 'Sin asignar';
   };
 
   const handleEliminarAlumno = async (id) => {
@@ -178,9 +206,9 @@ const AlumnosGet = () => {
   // Función para ordenar los integrantes de forma alfabética basado en el nombre
   const ordenarIntegranteAlfabeticamente = (user) => {
     return [...user].sort((a, b) => {
-      const sedeA = a.sede || ''; // Reemplaza null o undefined por una cadena vacía
-      const sedeB = b.sede || '';
-      return sedeA.localeCompare(sedeB);
+      const nombreA = a.nomyape || '';
+      const nombreB = b.nomyape || '';
+      return nombreA.localeCompare(nombreB);
     });
   };
 
@@ -188,25 +216,41 @@ const AlumnosGet = () => {
   const sortedalumnos = ordenarIntegranteAlfabeticamente(results);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 60;
+  const itemsPerPage = 20;
   const lastIndex = currentPage * itemsPerPage;
   const firstIndex = lastIndex - itemsPerPage;
   const records = sortedalumnos.slice(firstIndex, lastIndex);
   const nPage = Math.ceil(sortedalumnos.length / itemsPerPage);
   const numbers = [...Array(nPage + 1).keys()].slice(1);
 
-  function prevPage() {
-    if (currentPage !== firstIndex) {
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedProfesor, filtroRutina]);
+
+  useEffect(() => {
+    if (currentPage > nPage && nPage > 0) {
+      setCurrentPage(nPage);
+    }
+    if (nPage === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, nPage]);
+
+  function prevPage(e) {
+    e?.preventDefault?.();
+    if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   }
 
-  function changeCPage(id) {
+  function changeCPage(id, e) {
+    e?.preventDefault?.();
     setCurrentPage(id);
   }
 
-  function nextPage() {
-    if (currentPage !== firstIndex) {
+  function nextPage(e) {
+    e?.preventDefault?.();
+    if (currentPage < nPage) {
       setCurrentPage(currentPage + 1);
     }
   }
@@ -219,302 +263,566 @@ const AlumnosGet = () => {
 
   const handleProfesorChange = (e) => {
     setSelectedProfesor(e.target.value);
+    setCurrentPage(1);
   };
 
   function handleVerPerfil(id) {
     navigate(`/dashboard/student/${id}`);
   }
 
+  const totalPersonalizados = useMemo(
+    () =>
+      results.filter((alumno) => alumno.rutina_tipo === 'personalizado').length,
+    [results]
+  );
+
+  const totalGenerales = useMemo(
+    () => results.filter((alumno) => alumno.rutina_tipo === 'general').length,
+    [results]
+  );
+
+  const desde = results.length === 0 ? 0 : firstIndex + 1;
+  const hasta = Math.min(lastIndex, sortedalumnos.length);
+
   return (
     <>
       <NavbarStaff />
-      <div className="relative min-h-screen bg-[radial-gradient(ellipse_at_top,rgba(2,6,23,1),rgba(15,23,42,1))] pt-10 pb-10">
+
+      <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#0a0a0b_0%,#111114_55%,#050505_100%)] pt-8 pb-10">
         <ParticlesBackground />
 
-        <div className="rounded-3xl w-11/12 mx-auto pb-2 ring-1 ring-white/10 bg-white/5 backdrop-blur-xl">
-          {/* Volver */}
-          <div className="pl-5 pt-5">
-            <Link to="/dashboard">
-              <button className="py-2 px-5 rounded-xl text-sm text-slate-100 bg-slate-800/80 hover:bg-slate-700 transition ring-1 ring-white/10">
-                Volver
-              </button>
-            </Link>
-          </div>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[-8%] top-[-8%] h-[320px] w-[320px] rounded-full bg-[#d11f2f]/10 blur-3xl" />
+          <div className="absolute bottom-[-10%] right-[-8%] h-[280px] w-[280px] rounded-full bg-[#ef3347]/8 blur-3xl" />
+        </div>
 
-          {/* Título */}
-          <div className="flex justify-center px-4">
-            <h1 className="pb-3 text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-300 via-sky-300 to-cyan-300 bg-clip-text text-transparent">
-              Listado de Alumnos:&nbsp;
-              <span className="text-slate-300 font-medium">
-                Cantidad de registros: {results.length}
-              </span>
-            </h1>
-          </div>
+        <div className="relative z-10 mx-auto w-[95%] max-w-[1700px]">
+          <div className="overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.04] shadow-2xl ring-1 ring-white/10 backdrop-blur-xl">
+            <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(239,51,71,0.08)_0%,rgba(255,255,255,0.025)_48%,rgba(0,0,0,0.35)_100%)]" />
 
-          {/* Filtros */}
-          <form className="flex flex-wrap justify-center gap-3 pb-6 px-4">
-            <input
-              value={search}
-              onChange={searcher}
-              type="text"
-              placeholder="Buscar alumnos…"
-              className="w-full md:w-[280px] rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-2.5 text-slate-100 placeholder-slate-500 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-            />
+            {/* Volver + Hero */}
+            <div className="relative border-b border-white/10 px-5 py-5 md:px-7 md:py-6">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <Link to="/dashboard">
+                    <button
+                      className="mb-5 rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-2.5 text-sm text-white/85 transition hover:bg-white/[0.08]"
+                      style={fontTitle}
+                    >
+                      Volver
+                    </button>
+                  </Link>
 
-            {userLevel === 'admin' && (
-              <select
-                value={selectedProfesor}
-                onChange={handleProfesorChange}
-                className="w-full md:w-[260px] rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-2.5 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-              >
-                <option value="" className="bg-slate-900">
-                  Todos los Profesores
-                </option>
-                {usuarios.map((prof) => (
-                  <option
-                    key={prof.id}
-                    value={prof.id}
-                    className="bg-slate-900"
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className="rounded-full border border-[#ef3347]/20 bg-[#ef3347]/10 px-4 py-1 text-[11px] uppercase tracking-[0.24em] text-[#ff98a5]"
+                      style={fontTitle}
+                    >
+                      Gestión de alumnos
+                    </span>
+
+                    <span
+                      className="text-[24px] uppercase leading-none text-[#ff5a6f]"
+                      style={fontDisplay}
+                    >
+                      Altos Roca
+                    </span>
+                  </div>
+
+                  <h1
+                    className="mt-4 text-3xl font-black uppercase tracking-tight text-white md:text-4xl"
+                    style={fontTitle}
                   >
-                    {prof.nombre}
-                  </option>
-                ))}
-              </select>
-            )}
+                    Listado de alumnos
+                  </h1>
 
-            <select
-              value={filtroRutina}
-              onChange={(e) => setFiltroRutina(e.target.value)}
-              className="w-full md:w-[220px] rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-2.5 text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-            >
-              <option value="" className="bg-slate-900">
-                Todos los tipos
-              </option>
-              <option value="personalizado" className="bg-slate-900">
-                Personalizado
-              </option>
-              <option value="general" className="bg-slate-900">
-                General
-              </option>
-            </select>
-          </form>
+                  <p
+                    className="mt-3 max-w-3xl text-sm leading-6 text-white/65 md:text-base"
+                    style={fontBody}
+                  >
+                    Visualizá, filtrá y gestioná alumnos desde una tabla
+                    operativa más clara, compacta y eficiente para trabajo
+                    administrativo e instructores.
+                  </p>
+                </div>
 
-          {/* CTA Nuevo */}
-          <div className="flex justify-center pb-6">
-            <button
-              onClick={abrirModal}
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-5 rounded-2xl transition ring-1 ring-indigo-400/40"
-            >
-              Nuevo Alumno
-            </button>
-          </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[640px]">
+                  <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p
+                          className="text-[11px] uppercase tracking-[0.2em] text-white/45"
+                          style={fontTitle}
+                        >
+                          Total visible
+                        </p>
+                        <p
+                          className="mt-2 text-3xl leading-none text-white"
+                          style={fontDisplay}
+                        >
+                          {results.length}
+                        </p>
+                      </div>
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl border border-[#ef3347]/20 bg-[#ef3347]/10 text-[#ff98a5]">
+                        <FaUserGraduate />
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Grid de Cards / vacío */}
-          {results.length === 0 ? (
-            <div className="px-6 pb-10">
-              <div className="w-full max-w-3xl mx-auto rounded-2xl border border-dashed border-white/10 bg-slate-900/50 p-8 text-center">
-                <p className="text-slate-300">
-                  No se encontraron alumnos para los filtros aplicados.
-                </p>
-                <p className="text-slate-400 mt-1">
-                  Prueba ajustando tu búsqueda.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="px-4 pb-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
-                  {results.map((alumno) => {
-                    const isPersonal = alumno.rutina_tipo === 'personalizado';
-                    return (
-                      <article
-                        key={alumno.id}
-                        className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/20 via-indigo-500/20 to-fuchsia-500/20 ring-1 ring-white/10 hover:from-cyan-400/30 hover:via-indigo-500/30 hover:to-fuchsia-500/30 transition-all"
-                      >
-                        <div className="rounded-2xl h-full bg-slate-900/70 backdrop-blur-md p-4 ring-1 ring-white/10">
-                          {/* Header */}
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <button
-                                type="button"
-                                onClick={() => obtenerAlumno(alumno.id)}
-                                className="text-left"
-                                title="Abrir perfil rápido"
-                              >
-                                <h3 className="truncate max-w-[220px] font-semibold text-slate-100">
-                                  {alumno.nomyape}
-                                </h3>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                  ID #{alumno.id} ·{' '}
-                                  {formatearFecha(alumno.created_at)}
-                                </p>
-                              </button>
-                            </div>
+                  <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p
+                          className="text-[11px] uppercase tracking-[0.2em] text-white/45"
+                          style={fontTitle}
+                        >
+                          Personalizados
+                        </p>
+                        <p
+                          className="mt-2 text-3xl leading-none text-white"
+                          style={fontDisplay}
+                        >
+                          {totalPersonalizados}
+                        </p>
+                      </div>
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl border border-[#ef3347]/20 bg-[#ef3347]/10 text-[#ff98a5]">
+                        <FaListUl />
+                      </div>
+                    </div>
+                  </div>
 
-                            <span
-                              className={
-                                'shrink-0 px-2 py-1 text-[11px] rounded-full font-semibold border ring-1 ' +
-                                (isPersonal
-                                  ? 'bg-orange-500/15 text-orange-200 border-orange-400/30 ring-orange-400/30'
-                                  : 'bg-sky-500/15 text-sky-200 border-sky-400/30 ring-sky-400/30')
-                              }
-                              title={
-                                isPersonal
-                                  ? 'Rutina Personalizada'
-                                  : 'Rutina General'
-                              }
-                            >
-                              {isPersonal ? 'Personalizado' : 'General'}
-                            </span>
-                          </div>
-
-                          {/* Content */}
-                          <div className="mt-4 space-y-3 text-sm">
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-slate-400">Profesor</span>
-                              <span className="text-slate-200 font-medium truncate max-w-[55%] text-right">
-                                {obtenerNombreProfesor(alumno.user_id)}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-slate-400">DNI</span>
-                              <button
-                                type="button"
-                                onClick={() => obtenerAlumno(alumno.id)}
-                                className="text-slate-200 hover:text-slate-100 font-medium"
-                                title="Ver detalle"
-                              >
-                                {alumno.dni}
-                              </button>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-slate-400">Teléfono</span>
-                              <button
-                                type="button"
-                                onClick={() => obtenerAlumno(alumno.id)}
-                                className="text-slate-200 hover:text-slate-100 font-medium truncate max-w-[55%] text-right"
-                                title={alumno.telefono}
-                              >
-                                {alumno.telefono}
-                              </button>
-                            </div>
-
-                            <div className="pt-2">
-                              <p className="text-slate-400 mb-1">Objetivo</p>
-                              <p
-                                className="text-slate-200/90 line-clamp-2"
-                                title={alumno.objetivo}
-                              >
-                                {alumno.objetivo || '—'}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {(userLevel === 'admin' ||
-                                userLevel === 'instructor') && (
-                                <>
-                                  <button
-                                    onClick={() => handleEditarAlumno(alumno)}
-                                    type="button"
-                                    className="px-3.5 py-2 text-xs rounded-xl border border-white/10 text-amber-300 hover:bg-amber-400/10 hover:text-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400/40 transition"
-                                    title="Editar"
-                                  >
-                                    Editar
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleEliminarAlumno(alumno.id)
-                                    }
-                                    type="button"
-                                    className="px-3.5 py-2 text-xs rounded-xl border border-white/10 text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400/40 transition"
-                                    title="Eliminar"
-                                  >
-                                    Eliminar
-                                  </button>
-                                </>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={() => handleVerPerfil(alumno.id)}
-                              type="button"
-                              className="px-4 py-2 text-xs rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 transition"
-                              title="Ver Perfil"
-                            >
-                              Ver Perfil
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Glow on hover */}
-                        <div
-                          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"
-                          style={{
-                            boxShadow: '0 0 80px 8px rgba(99,102,241,0.15)'
-                          }}
-                        />
-                      </article>
-                    );
-                  })}
+                  <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p
+                          className="text-[11px] uppercase tracking-[0.2em] text-white/45"
+                          style={fontTitle}
+                        >
+                          Generales
+                        </p>
+                        <p
+                          className="mt-2 text-3xl leading-none text-white"
+                          style={fontDisplay}
+                        >
+                          {totalGenerales}
+                        </p>
+                      </div>
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl border border-[#ef3347]/20 bg-[#ef3347]/10 text-[#ff98a5]">
+                        <FaChalkboardTeacher />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Paginación */}
-              <nav className="flex justify-center items-center my-8">
-                <ul className="flex items-center gap-2">
-                  <li>
-                    <a
-                      href="#"
-                      className="px-3 h-9 grid place-items-center rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 ring-1 ring-white/10"
-                      onClick={prevPage}
+            {/* Filtros + CTA */}
+            <div className="relative border-b border-white/10 px-5 py-5 md:px-7">
+              <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
+                <form className="flex w-full flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
+                  <div className="relative w-full xl:max-w-[320px]">
+                    <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/35" />
+                    <input
+                      value={search}
+                      onChange={searcher}
+                      type="text"
+                      placeholder="Buscar por nombre, DNI o teléfono"
+                      className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 pl-11 pr-4 text-sm text-white outline-none placeholder:text-white/28 ring-1 ring-white/10 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15"
+                      style={fontBody}
+                    />
+                  </div>
+
+                  {userLevel === 'admin' && (
+                    <select
+                      value={selectedProfesor}
+                      onChange={handleProfesorChange}
+                      className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15 xl:w-[260px]"
+                      style={fontBody}
                     >
-                      Prev
-                    </a>
-                  </li>
+                      <option value="" className="bg-[#0a0a0b]">
+                        Todos los profesores
+                      </option>
+                      {usuarios.map((prof) => (
+                        <option
+                          key={prof.id}
+                          value={prof.id}
+                          className="bg-[#0a0a0b]"
+                        >
+                          {prof.nombre || prof.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
 
-                  {numbers.map((number, index) => (
-                    <li key={index}>
-                      <a
-                        href="#"
-                        onClick={() => changeCPage(number)}
-                        className={
-                          'min-w-9 px-3 h-9 grid place-items-center rounded-xl ring-1 ' +
-                          (currentPage === number
-                            ? 'bg-indigo-600 text-white ring-indigo-400/40'
-                            : 'bg-white/5 text-slate-200 hover:bg-white/10 ring-white/10')
-                        }
-                      >
-                        {number}
-                      </a>
-                    </li>
-                  ))}
+                  <select
+                    value={filtroRutina}
+                    onChange={(e) => {
+                      setFiltroRutina(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15 xl:w-[220px]"
+                    style={fontBody}
+                  >
+                    <option value="" className="bg-[#0a0a0b]">
+                      Todos los tipos
+                    </option>
+                    <option value="personalizado" className="bg-[#0a0a0b]">
+                      Personalizado
+                    </option>
+                    <option value="general" className="bg-[#0a0a0b]">
+                      General
+                    </option>
+                  </select>
 
-                  <li>
-                    <a
-                      href="#"
-                      className="px-3 h-9 grid place-items-center rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 ring-1 ring-white/10"
-                      onClick={nextPage}
-                    >
-                      Next
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </>
-          )}
+                  <div
+                    className="inline-flex h-12 items-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm text-white/70"
+                    style={fontBody}
+                  >
+                    Mostrando {desde} a {hasta} de {results.length}
+                  </div>
+                </form>
 
-          <FormAltaAlumno
-            isOpen={modalNewAlumno}
-            onClose={cerarModal}
-            user={selectedAlumno}
-            setSelectedUser={setSelectedAlumno}
-          />
+                <div className="flex w-full 2xl:w-auto">
+                  <button
+                    onClick={abrirModal}
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-5 text-sm font-semibold text-white transition hover:scale-[1.01] 2xl:w-auto"
+                    style={fontTitle}
+                  >
+                    <FaPlus />
+                    Nuevo Alumno
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabla / vacío */}
+            {results.length === 0 ? (
+              <div className="relative px-5 py-10 md:px-7">
+                <div className="mx-auto max-w-3xl rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-10 text-center">
+                  <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl border border-[#ef3347]/20 bg-[#ef3347]/10 text-2xl text-[#ff98a5]">
+                    <FaUserGraduate />
+                  </div>
+                  <h3
+                    className="text-2xl font-black text-white"
+                    style={fontTitle}
+                  >
+                    No se encontraron alumnos
+                  </h3>
+                  <p
+                    className="mt-2 text-sm leading-6 text-white/58"
+                    style={fontBody}
+                  >
+                    No hay registros para los filtros aplicados. Probá ajustando
+                    la búsqueda, el profesor o el tipo de rutina.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="relative px-3 py-4 md:px-5">
+                  <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#0a0a0b]/75 ring-1 ring-white/10">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-[1180px] w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/[0.04]">
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Alumno
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Profesor
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Rutina
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              DNI
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Teléfono
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Objetivo
+                            </th>
+                            <th
+                              className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Alta
+                            </th>
+                            <th
+                              className="px-5 py-4 text-right text-[11px] font-bold uppercase tracking-[0.18em] text-white/50"
+                              style={fontTitle}
+                            >
+                              Acciones
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {records.map((alumno, index) => {
+                            const isPersonal =
+                              alumno.rutina_tipo === 'personalizado';
+
+                            return (
+                              <tr
+                                key={alumno.id}
+                                className={
+                                  'border-b border-white/6 transition hover:bg-white/[0.04] ' +
+                                  (index % 2 === 0
+                                    ? 'bg-transparent'
+                                    : 'bg-white/[0.015]')
+                                }
+                              >
+                                <td className="px-5 py-4 align-top">
+                                  <div className="flex items-start gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => obtenerAlumno(alumno.id)}
+                                      className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#ef3347]/18 bg-[#ef3347]/10 text-[#ff98a5] transition hover:bg-[#ef3347]/15"
+                                      title="Abrir perfil rápido"
+                                    >
+                                      <FaUserGraduate />
+                                    </button>
+
+                                    <div className="min-w-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => obtenerAlumno(alumno.id)}
+                                        className="max-w-[240px] truncate text-left text-base font-semibold text-white hover:text-[#ffd5db]"
+                                        style={fontTitle}
+                                        title={alumno.nomyape}
+                                      >
+                                        {alumno.nomyape}
+                                      </button>
+
+                                      <div
+                                        className="mt-1 text-xs text-white/42"
+                                        style={fontBody}
+                                      >
+                                        ID #{alumno.id}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/78">
+                                    <FaChalkboardTeacher className="text-[#ff98a5]" />
+                                    <span style={fontBody}>
+                                      {obtenerNombreProfesor(alumno.user_id)}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <span
+                                    className={
+                                      'inline-flex rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] ' +
+                                      (isPersonal
+                                        ? 'border-[#ef3347]/20 bg-[#ef3347]/10 text-[#ffd5db]'
+                                        : 'border-white/10 bg-white/[0.05] text-white/78')
+                                    }
+                                    style={fontTitle}
+                                    title={
+                                      isPersonal
+                                        ? 'Rutina Personalizada'
+                                        : 'Rutina General'
+                                    }
+                                  >
+                                    {isPersonal ? 'Personalizado' : 'General'}
+                                  </span>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <button
+                                    type="button"
+                                    onClick={() => obtenerAlumno(alumno.id)}
+                                    className="inline-flex items-center gap-2 text-sm text-white/82 transition hover:text-white"
+                                    style={fontBody}
+                                    title="Ver detalle"
+                                  >
+                                    <FaIdCard className="text-[#ff98a5]" />
+                                    {alumno.dni || '—'}
+                                  </button>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <button
+                                    type="button"
+                                    onClick={() => obtenerAlumno(alumno.id)}
+                                    className="inline-flex max-w-[170px] items-center gap-2 truncate text-sm text-white/82 transition hover:text-white"
+                                    style={fontBody}
+                                    title={alumno.telefono || 'Sin teléfono'}
+                                  >
+                                    <FaPhoneAlt className="text-[#ff98a5]" />
+                                    <span className="truncate">
+                                      {alumno.telefono || '—'}
+                                    </span>
+                                  </button>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <div
+                                    className="max-w-[260px] truncate text-sm text-white/65"
+                                    style={fontBody}
+                                    title={alumno.objetivo || 'Sin objetivo'}
+                                  >
+                                    <span className="mr-2 inline-block text-[#ff98a5]">
+                                      <FaBullseye />
+                                    </span>
+                                    {alumno.objetivo || '—'}
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <div
+                                    className="text-sm text-white/68"
+                                    style={fontBody}
+                                  >
+                                    {formatearFecha(alumno.created_at)}
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-4 align-top">
+                                  <div className="flex justify-end gap-2">
+                                    {(userLevel === 'admin' ||
+                                      userLevel === 'instructor') && (
+                                      <>
+                                        <button
+                                          onClick={() =>
+                                            handleEditarAlumno(alumno)
+                                          }
+                                          type="button"
+                                          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-semibold text-amber-200 transition hover:bg-amber-400/10"
+                                          style={fontTitle}
+                                          title="Editar"
+                                        >
+                                          <FaEdit />
+                                          Editar
+                                        </button>
+
+                                        <button
+                                          onClick={() =>
+                                            handleEliminarAlumno(alumno.id)
+                                          }
+                                          type="button"
+                                          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#ef3347]/14 bg-[#ef3347]/10 px-4 text-xs font-semibold text-[#ffd5db] transition hover:bg-[#ef3347]/16"
+                                          style={fontTitle}
+                                          title="Eliminar"
+                                        >
+                                          <FaTrash />
+                                          Eliminar
+                                        </button>
+                                      </>
+                                    )}
+
+                                    <button
+                                      onClick={() => handleVerPerfil(alumno.id)}
+                                      type="button"
+                                      className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-4 text-xs font-semibold text-white transition hover:scale-[1.01]"
+                                      style={fontTitle}
+                                      title="Ver Perfil"
+                                    >
+                                      <FaEye />
+                                      Ver Perfil
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Paginación */}
+                {nPage > 1 && (
+                  <nav className="relative flex justify-center items-center px-4 pb-8 pt-3">
+                    <ul className="flex flex-wrap items-center justify-center gap-2">
+                      <li>
+                        <a
+                          href="#"
+                          className={
+                            'inline-flex h-10 items-center justify-center rounded-2xl border px-4 text-sm transition ' +
+                            (currentPage === 1
+                              ? 'cursor-not-allowed border-white/10 bg-white/[0.03] text-white/30'
+                              : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]')
+                          }
+                          onClick={prevPage}
+                          style={fontTitle}
+                        >
+                          <FaChevronLeft className="mr-2" />
+                          Prev
+                        </a>
+                      </li>
+
+                      {numbers.map((number) => (
+                        <li key={number}>
+                          <a
+                            href="#"
+                            onClick={(e) => changeCPage(number, e)}
+                            className={
+                              'min-w-[40px] px-3 h-10 grid place-items-center rounded-2xl border text-sm font-semibold transition ' +
+                              (currentPage === number
+                                ? 'border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] text-white'
+                                : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]')
+                            }
+                            style={fontTitle}
+                          >
+                            {number}
+                          </a>
+                        </li>
+                      ))}
+
+                      <li>
+                        <a
+                          href="#"
+                          className={
+                            'inline-flex h-10 items-center justify-center rounded-2xl border px-4 text-sm transition ' +
+                            (currentPage === nPage
+                              ? 'cursor-not-allowed border-white/10 bg-white/[0.03] text-white/30'
+                              : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]')
+                          }
+                          onClick={nextPage}
+                          style={fontTitle}
+                        >
+                          Next
+                          <FaChevronRight className="ml-2" />
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                )}
+              </>
+            )}
+
+            <FormAltaAlumno
+              isOpen={modalNewAlumno}
+              onClose={cerarModal}
+              user={selectedAlumno}
+              setSelectedUser={setSelectedAlumno}
+            />
+          </div>
         </div>
       </div>
 

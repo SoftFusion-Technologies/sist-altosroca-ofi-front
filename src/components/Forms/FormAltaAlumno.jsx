@@ -11,11 +11,9 @@
  *  - Mantiene el contrato de API existente
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-import ModalSuccess from './ModalSuccess';
-import ModalError from './ModalError';
 import Alerta from '../Error';
 import axios from 'axios';
 import { useAuth } from '../../AuthContext';
@@ -31,12 +29,19 @@ import {
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
+const fontTitle = {
+  fontFamily: 'var(--font-family-base, "Montserrat", sans-serif)'
+};
+const fontBody = {
+  fontFamily: 'var(--font-family-body, "MessinaRegular", sans-serif)'
+};
+const fontDisplay = {
+  fontFamily: 'var(--font-family-display, "BigNoodle", sans-serif)'
+};
+
 const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [errorModal, setErrorModal] = useState(false);
   const { userLevel, userId } = useAuth();
 
-  const [textoModal, setTextoModal] = useState('');
   const formikRef = useRef(null);
   const overlayRef = useRef(null);
   const firstInputRef = useRef(null);
@@ -66,8 +71,9 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   }, []);
 
   useEffect(() => {
-    // autofocus cuando abre
-    if (isOpen) setTimeout(() => firstInputRef.current?.focus(), 50);
+    if (isOpen) {
+      setTimeout(() => firstInputRef.current?.focus(), 50);
+    }
   }, [isOpen]);
 
   const nuevoAlumnoSchema = Yup.object().shape({
@@ -92,7 +98,6 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
 
   const handleSubmitAlumno = async (valores) => {
     try {
-      // Validación rápida (opcional; Formik/Yup ya valida)
       if (
         !valores.nomyape?.trim() ||
         !valores.telefono?.trim() ||
@@ -103,9 +108,9 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
           icon: 'warning',
           title: 'Campos incompletos',
           text: 'Por favor, completá todos los obligatorios.',
-          background: '#0b1220',
-          color: '#e5e7eb',
-          confirmButtonColor: '#4f46e5'
+          background: '#0a0a0b',
+          color: '#f3f4f6',
+          confirmButtonColor: '#d11f2f'
         });
         return;
       }
@@ -125,19 +130,15 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         throw new Error(`HTTP ${respuesta.status}`);
       }
 
-      // Si querés usar la data:
-      // const data = await respuesta.json();
-
       await Swal.fire({
         icon: 'success',
         title: method === 'PUT' ? 'Alumno actualizado' : 'Alumno creado',
         timer: 1400,
         showConfirmButton: false,
-        background: '#0b1220',
-        color: '#e5e7eb'
+        background: '#0a0a0b',
+        color: '#f3f4f6'
       });
 
-      // cerrar modal luego del toast
       handleClose();
     } catch (error) {
       console.error('Error al insertar el registro:', error);
@@ -145,23 +146,28 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         icon: 'error',
         title: 'No se pudo guardar',
         text: 'Intentá nuevamente en unos segundos.',
-        background: '#0b1220',
-        color: '#e5e7eb',
-        confirmButtonColor: '#ef4444'
+        background: '#0a0a0b',
+        color: '#f3f4f6',
+        confirmButtonColor: '#d11f2f'
       });
     }
   };
 
+  // Benjamin Orellana - 2026-04-02 - Cierre seguro del modal para evitar validaciones de blur al hacer click en cerrar o cancelar.
   const handleClose = () => {
     if (formikRef.current) {
       formikRef.current.resetForm();
-      setSelectedUser?.(null);
     }
+    setSelectedUser?.(null);
     onClose?.();
   };
 
   const closeOnBackdrop = (e) => {
     if (e.target === overlayRef.current) handleClose();
+  };
+
+  const preventBlurThenClose = (e) => {
+    e.preventDefault();
   };
 
   return (
@@ -170,7 +176,7 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         <motion.div
           ref={overlayRef}
           onMouseDown={closeOnBackdrop}
-          className="fixed inset-0 z-[120] grid place-items-center bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,0.92),rgba(15,23,42,0.92))] backdrop-blur"
+          className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(58,4,10,0.30)_0%,rgba(5,5,5,0.88)_42%,rgba(5,5,5,0.96)_100%)] px-4 pt-4 pb-6 md:pt-10 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -178,26 +184,57 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
           <motion.div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-2xl mx-4"
+            className="w-full max-w-2xl my-0"
             initial={{ y: 24, scale: 0.98, opacity: 0 }}
             animate={{ y: 0, scale: 1, opacity: 1 }}
             exit={{ y: 24, scale: 0.98, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
           >
-            <div className="rounded-3xl border border-white/10 bg-slate-950/80 ring-1 ring-white/10 shadow-2xl backdrop-blur-xl">
+            <div
+              className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0a0b]/95 ring-1 ring-white/10 shadow-2xl backdrop-blur-xl"
+              style={{ boxShadow: '0 0 36px rgba(239, 51, 71, 0.16)' }}
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(239,51,71,0.12)_0%,rgba(255,255,255,0.025)_46%,rgba(0,0,0,0.45)_100%)]" />
+              <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(239,51,71,0.08)_0%,rgba(239,51,71,0.45)_50%,rgba(239,51,71,0.08)_100%)]" />
+              <div className="absolute right-[-60px] top-[-60px] h-44 w-44 rounded-full bg-[#ef3347]/10 blur-3xl" />
+
               {/* Header */}
-              <div className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-6 py-4 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl rounded-t-3xl">
+              <div className="relative sticky top-0 z-10 flex items-center justify-between rounded-t-[32px] border-b border-white/10 bg-[#0a0a0b]/90 px-5 py-4 backdrop-blur-xl md:px-6">
                 <div>
-                  <h2 className="text-lg md:text-xl font-semibold text-slate-100 tracking-tight">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="rounded-full border border-[#ef3347]/20 bg-[#ef3347]/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[#ff98a5]"
+                      style={fontTitle}
+                    >
+                      {user ? 'Edición' : 'Alta'}
+                    </span>
+                    <span
+                      className="text-[20px] uppercase leading-none text-[#ff5a6f]"
+                      style={fontDisplay}
+                    >
+                      Altos Roca
+                    </span>
+                  </div>
+
+                  <h2
+                    className="mt-3 text-xl font-black tracking-tight text-white md:text-2xl"
+                    style={fontTitle}
+                  >
                     {user ? 'Editar alumno' : 'Nuevo alumno'}
                   </h2>
-                  <p className="text-[12px] text-slate-400">
+                  <p
+                    className="mt-1 text-[12px] text-white/55"
+                    style={fontBody}
+                  >
                     Completá los campos requeridos.
                   </p>
                 </div>
+
                 <button
+                  type="button"
+                  onMouseDown={preventBlurThenClose}
                   onClick={handleClose}
-                  className="p-2 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white"
+                  className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-white/75 transition hover:bg-white/[0.08] hover:text-white"
                   aria-label="Cerrar"
                 >
                   <IconClose className="h-5 w-5" />
@@ -205,7 +242,7 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
               </div>
 
               {/* Body */}
-              <div className="p-5 md:p-6">
+              <div className="relative p-5 md:p-6">
                 <Formik
                   innerRef={formikRef}
                   initialValues={{
@@ -216,8 +253,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                     user_id: user
                       ? user.user_id
                       : userLevel === 'instructor'
-                      ? userId
-                      : '',
+                        ? userId
+                        : '',
                     rutina_tipo: user ? user.rutina_tipo : 'personalizado',
                     created_at: user ? user.created_at : new Date(),
                     updated_at: user ? user.updated_at : new Date()
@@ -231,15 +268,17 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                 >
                   {({ errors, touched }) => (
                     <Form className="space-y-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         {/* Nombre y Apellido */}
                         <div className="w-full">
                           <label
                             htmlFor="nomyape"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconUser className="h-4 w-4" /> Nombre y Apellido
+                              <IconUser className="h-4 w-4 text-[#ff98a5]" />
+                              Nombre y Apellido
                             </span>
                           </label>
                           <Field
@@ -249,7 +288,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                             type="text"
                             placeholder="Ej.: Juan Pérez"
                             maxLength="70"
-                            className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 w-full rounded-[22px] border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition placeholder:text-white/28 focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                            style={fontBody}
                           />
                           {errors.nomyape && touched.nomyape && (
                             <Alerta>{errors.nomyape}</Alerta>
@@ -260,10 +300,12 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <div className="w-full">
                           <label
                             htmlFor="telefono"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconPhone className="h-4 w-4" /> Teléfono
+                              <IconPhone className="h-4 w-4 text-[#ff98a5]" />
+                              Teléfono
                             </span>
                           </label>
                           <Field
@@ -272,7 +314,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                             type="text"
                             placeholder="Ej.: 3815555555"
                             maxLength="15"
-                            className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 w-full rounded-[22px] border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition placeholder:text-white/28 focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                            style={fontBody}
                           />
                           {errors.telefono && touched.telefono && (
                             <Alerta>{errors.telefono}</Alerta>
@@ -283,10 +326,12 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <div className="w-full">
                           <label
                             htmlFor="dni"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconHash className="h-4 w-4" /> DNI
+                              <IconHash className="h-4 w-4 text-[#ff98a5]" />
+                              DNI
                             </span>
                           </label>
                           <Field
@@ -295,7 +340,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                             type="text"
                             placeholder="Ej.: 40123456"
                             maxLength="15"
-                            className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 w-full rounded-[22px] border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition placeholder:text-white/28 focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                            style={fontBody}
                           />
                           {errors.dni && touched.dni && (
                             <Alerta>{errors.dni}</Alerta>
@@ -306,26 +352,29 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <div className="w-full">
                           <label
                             htmlFor="rutina_tipo"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconList className="h-4 w-4" /> Tipo de Rutina{' '}
-                              <span className="text-orange-400">*</span>
+                              <IconList className="h-4 w-4 text-[#ff98a5]" />
+                              Tipo de Rutina
+                              <span className="text-[#ff98a5]">*</span>
                             </span>
                           </label>
                           <Field
                             as="select"
                             id="rutina_tipo"
                             name="rutina_tipo"
-                            className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 w-full rounded-[22px] border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                            style={fontBody}
                           >
                             <option
-                              className="bg-slate-900"
+                              className="bg-[#0a0a0b]"
                               value="personalizado"
                             >
                               Personalizado
                             </option>
-                            <option className="bg-slate-900" value="general">
+                            <option className="bg-[#0a0a0b]" value="general">
                               General
                             </option>
                           </Field>
@@ -338,10 +387,12 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <div className="w-full md:col-span-2">
                           <label
                             htmlFor="objetivo"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconList className="h-4 w-4" /> Objetivo
+                              <IconList className="h-4 w-4 text-[#ff98a5]" />
+                              Objetivo
                             </span>
                           </label>
                           <Field
@@ -350,7 +401,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                             type="text"
                             placeholder="Ej.: bajar de peso / ganar masa / rendimiento"
                             maxLength="200"
-                            className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="h-12 w-full rounded-[22px] border border-white/10 bg-black/20 px-4 text-sm text-white outline-none ring-1 ring-white/10 transition placeholder:text-white/28 focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                            style={fontBody}
                           />
                           {errors.objetivo && touched.objetivo && (
                             <Alerta>{errors.objetivo}</Alerta>
@@ -361,11 +413,12 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <div className="w-full md:col-span-2">
                           <label
                             htmlFor="user_id"
-                            className="text-sm text-slate-300 mb-1 block"
+                            className="mb-2 block text-sm text-white/84"
+                            style={fontTitle}
                           >
                             <span className="inline-flex items-center gap-2">
-                              <IconUsers className="h-4 w-4" /> Profesor
-                              asignado
+                              <IconUsers className="h-4 w-4 text-[#ff98a5]" />
+                              Profesor asignado
                             </span>
                           </label>
                           <div className="relative">
@@ -373,10 +426,11 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                               as="select"
                               id="user_id"
                               name="user_id"
-                              className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                              className="h-12 w-full appearance-none rounded-[22px] border border-white/10 bg-black/20 px-4 pr-10 text-sm text-white outline-none ring-1 ring-white/10 transition focus:border-[#ef3347]/22 focus:ring-2 focus:ring-[#ef3347]/16"
+                              style={fontBody}
                             >
                               <option
-                                className="bg-slate-900"
+                                className="bg-[#0a0a0b]"
                                 value=""
                                 disabled
                               >
@@ -386,18 +440,21 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                                 <option
                                   key={usuario.id}
                                   value={usuario.id}
-                                  className="bg-slate-900"
+                                  className="bg-[#0a0a0b]"
                                 >
                                   {usuario.nombre || usuario.name}
                                 </option>
                               ))}
                             </Field>
-                            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/45">
                               ▼
                             </div>
                           </div>
                           {errors.user_id && touched.user_id && (
-                            <p className="text-red-400 text-xs mt-1">
+                            <p
+                              className="mt-1 text-xs text-[#ff98a5]"
+                              style={fontBody}
+                            >
                               {errors.user_id}
                             </p>
                           )}
@@ -408,14 +465,17 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                       <div className="flex items-center justify-end gap-2 pt-2">
                         <button
                           type="button"
+                          onMouseDown={preventBlurThenClose}
                           onClick={handleClose}
-                          className="px-4 py-2 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5"
+                          className="h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm text-white/78 transition hover:bg-white/[0.08] hover:text-white"
+                          style={fontTitle}
                         >
                           Cancelar
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500"
+                          className="h-11 rounded-2xl border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-5 text-sm font-semibold text-white transition hover:scale-[1.01]"
+                          style={fontTitle}
                         >
                           {user ? 'Actualizar' : 'Crear Alumno'}
                         </button>
