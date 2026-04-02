@@ -4,9 +4,9 @@ export default function PasswordEditor({
   value,
   onChange,
   showConfirm = true,
-  confirmValue = '', // 👈 nuevo
-  onConfirmChange = () => {}, // 👈 nuevo
-  onValidityChange = () => {} // 👈 opcional: notifica match/mismatch
+  confirmValue = '', //  nuevo
+  onConfirmChange = () => {}, //  nuevo
+  onValidityChange = () => {} //  opcional: notifica match/mismatch
 }) {
   const [show, setShow] = useState(false);
 
@@ -57,7 +57,7 @@ export default function PasswordEditor({
           <button
             type="button"
             onClick={() => setShow((v) => !v)}
-            className="text-xs text-indigo-600 hover:underline"
+            className="text-xs text-red-600 hover:underline"
           >
             {show ? 'Ocultar' : 'Mostrar'}
           </button>

@@ -11,28 +11,34 @@
   color: #fff;
 }
 
-table {
+/* =========================================================
+   Benjamin Orellana - 02 / 04 / 2026 - Se eliminan estilos
+   globales peligrosos sobre table/tr/td/th para evitar que
+   rompan tablas nuevas en dark mode. Las tablas antiguas
+   deberán envolverse con .tabla-clasica.
+   ========================================================= */
+
+.tabla-clasica table {
   background-color: white;
-  text-align: left;
-  border-collapse: collapse;
   text-align: center;
+  border-collapse: collapse;
 }
 
-th {
+.tabla-clasica th {
   padding: 4px 2px;
   font-size: medium;
 }
 
-td {
+.tabla-clasica td {
   padding: 2px 4px;
   font-size: small;
 }
 
-tr:nth-child(even) {
+.tabla-clasica tr:nth-child(even) {
   background-color: #ecebeb;
 }
 
-tr:hover {
+.tabla-clasica tr:hover {
   --tw-text-opacity: 1;
   background-color: rgb(249 115 22 / var(--tw-text-opacity));
   color: white;
@@ -43,10 +49,12 @@ tr:hover {
   color: black !important;
   cursor: pointer !important;
 }
+
 .tr-gris:hover {
   background-color: rgb(125, 123, 121);
   color: white;
 }
+
 .pagination {
   display: flex;
   justify-content: flex-end;
@@ -65,116 +73,6 @@ tr:hover {
   background-color: #ff7441;
 }
 
-/* .notification {
-  position: relative;
-  display: inline-block;
-  max-width: 300px;
-  padding: 20px 15px;
-  border-radius: 4px;
-  background-color: #141619;
-  color: #f6f5f9;
-  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
-  transform: translateY(30px);
-  opacity: 0;
-  visibility: hidden;
-  animation: fade 4s linear forwards;
-} */
-
-/* .progress {
-  position: absolute;
-  left: 5px;
-  bottom: 5px;
-  width: 0;
-  height: 3px;
-  background-image: linear-gradient(to right, #529bdb, #3250bf);
-  border-radius: 4px;
-  animation: progress 3s 0.25s linear forwards;
-}
-
-@keyframes fade {
-  5% {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0px);
-  }
-  90% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
-
-  95% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-}
-@keyframes progress {
-  to {
-    width: calc(100% - 10px);
-  }
-} */
-
-/* .relog {
-  color: #fff;
-  font-size: 144px;
-  font-weight: 300;
-} */
-
-/* buton para volver */
-
-/* .wrapper {
-  padding: 1.5rem 0;
-  filter: url('#goo');
-}
-
-.buttonVolver {
-  display: inline-block;
-  text-align: center;
-  background: var(--color);
-  color: var(--bg);
-  font-weight: bold;
-  padding: 1.18em 1.32em 1.03em;
-  line-height: 1;
-  border-radius: 1em;
-  position: relative;
-  min-width: 8.23em;
-  text-decoration: none;
-  font-family: var(--font);
-  font-size: 1.25rem;
-}
-
-.buttonVolver:before,
-.buttonVolver:after {
-  width: 4.4em;
-  height: 2.95em;
-  position: absolute;
-  content: "";
-  display: inline-block;
-  background: var(--color);
-  border-radius: 50%;
-  transition: transform 1s ease;
-  transform: scale(0);
-  z-index: -1;
-}
-
-.buttonVolver:before {
-  top: -25%;
-  left: 20%;
-}
-
-.buttonVolver:after {
-  bottom: -25%;
-  right: 20%;
-}
-
-.buttonVolver:hover:before,
-.buttonVolver:hover:after {
-  transform: none;
-} */
-
 .style-prec {
   margin-top: 1rem;
   margin-left: 88rem;
@@ -188,18 +86,113 @@ tr:hover {
 }
 
 .cbutext {
-  font-size: 1.5rem; /* Ajusta este valor al tamaño que desees */
+  font-size: 1.5rem;
 }
 
 .copy-icon {
-  width: 2.5rem; /* Ajusta este valor al tamaño del texto */
-  margin-left: 10px; /* Espacio entre el CBU y el icono */
+  width: 2.5rem;
+  margin-left: 10px;
   cursor: pointer;
 }
 
 .btn-gris {
-  background-color: rgb(211, 211, 211); /* Color gris */
-  color: black; /* Cambia el color del texto si es necesario */
-  cursor: not-allowed; /* Cambia el cursor para indicar que no es clickeable */
+  background-color: rgb(211, 211, 211);
+  color: black;
+  cursor: not-allowed;
 }
 
+/* =========================================================
+   Tabla moderna
+   ========================================================= */
+
+.table-modern {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.table-modern thead {
+  background: #871cca;
+  color: white;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.table-modern th,
+.table-modern td {
+  padding: 14px 20px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s ease;
+}
+
+.table-modern tbody tr:hover {
+  background-color: #871cca !important;
+  cursor: pointer;
+}
+
+.table-modern tbody tr:hover td {
+  color: white !important;
+}
+
+.table-modern td button {
+  transition: all 0.3s ease;
+}
+
+/* Botones modernos */
+.table-action-btn {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-eliminar {
+  background-color: #871cca;
+  color: white;
+}
+
+.btn-eliminar:hover {
+  background-color: #dc2626;
+}
+
+.btn-contactar {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-contactar:hover {
+  background-color: #2563eb;
+}
+
+.btn-contactado {
+  background-color: #22c55e;
+}
+
+.btn-contactado:hover {
+  background-color: #16a34a;
+}
+
+.btn-wsp {
+  background-color: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-wsp:hover {
+  background-color: #059669;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin: 1rem 0;
+}

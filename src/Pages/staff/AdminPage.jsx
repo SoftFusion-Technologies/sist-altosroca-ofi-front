@@ -5,32 +5,27 @@ import '../../Styles/staff/dashboard.css';
 import '../../Styles/staff/background.css';
 import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
-import CardRecaptacion from './Components/CardRecaptacion';
-import BadgeAgendaVentas from './Components/BadgeAgendaVentas';
 import ParticlesBackground from '../../components/ParticlesBackground.jsx';
 import BadgeTestClasses from '../MetodosGets/Leads/BadgeTestClasses.jsx';
 import {
   FaArrowRight,
   FaChartBar,
   FaDumbbell,
-  FaFire,
   FaRunning,
   FaUserGraduate,
-  FaClipboardList,
-  FaShieldAlt,
-  FaLayerGroup
+  FaClipboardList
 } from 'react-icons/fa';
 
 /*
  * Programador: Benjamin Orellana
- * Fecha Actualización: 29 / 03 / 2026
- * Versión: 4.0
+ * Fecha Actualización: 02 / 04 / 2026
+ * Versión: 4.1
  *
  * Descripción:
- * Rediseño del AdminPage orientado a Altos Roca Gym.
- * Se mantiene la lógica de roles y accesos, pero se adapta el lenguaje visual
- * y los textos del dashboard para que representen mejor la operación diaria
- * del gimnasio: alumnos, rutinas, ejercicios, caja, prospectos y analíticas.
+ * Se ajusta el dashboard principal de Altos Roca Gym para trabajar únicamente
+ * con los roles válidos actuales (admin, vendedor, instructor), se elimina
+ * temporalmente el módulo de ventas y se reordena la grilla priorizando
+ * Ejercicios primero y Alumnos segundo.
  *
  * Tema: Dashboard principal - Staff
  * Capa: Frontend
@@ -60,15 +55,6 @@ const itemV = {
       damping: 16
     }
   }
-};
-
-const roleLabelMap = {
-  admin: 'Administrador',
-  socio: 'Socio',
-  administrativo: 'Administrativo',
-  contable: 'Contable',
-  vendedor: 'Vendedor',
-  instructor: 'Instructor'
 };
 
 const ModuleCard = ({
@@ -117,97 +103,63 @@ const ModuleCard = ({
 };
 
 const AdminPage = () => {
-  const { userId, userLevel, userName, nomyape } = useAuth();
+  const { userId, userLevel } = useAuth();
 
   const role = String(userLevel || '').toLowerCase();
 
-  const displayName = useMemo(() => {
-    const base = nomyape || userName || '';
-    if (!base) return 'Staff';
-    return base.trim().split(' ')[0] || 'Staff';
-  }, [nomyape, userName]);
-
   const modules = useMemo(() => {
-    const esAdminAmplio = ['admin', 'socio', 'administrativo', 'contable'].includes(
-      role
-    );
+    const esAdmin = role === 'admin';
     const esVendedor = role === 'vendedor';
     const esInstructor = role === 'instructor';
 
     return [
       {
-        key: 'ventas',
-        to: '/dashboard/ventas',
-        title: 'ventas',
-        description:
-          'Captación de leads y gestión de ventas.',
-        icon: FaFire,
-        accent: 'from-red-700 via-red-500 to-orange-300',
-        visible: esAdminAmplio || esVendedor,
-        badge: (
-          <BadgeAgendaVentas
-            userId={userId}
-            userLevel={userLevel}
-            size="lg"
-          />
-        )
-      },
-      {
-        key: 'leads',
-        to: '/dashboard/leads',
-        title: 'Prospectos',
-        description:
-          'Seguimiento de consultas, pruebas y futuros ingresos.',
-        icon: FaRunning,
-        accent: 'from-fuchsia-700 via-red-500 to-rose-300',
-        visible: esAdminAmplio || esVendedor,
-        badge: (
-          <BadgeTestClasses
-            userId={userId}
-            userLevel={userLevel}
-            size="lg"
-          />
-        )
-      },
-      {
         key: 'ejercicios',
         to: '/dashboard/ejercicios',
         title: 'Ejercicios',
-        description:
-          'Biblioteca técnica para trabajar mejor cada rutina.',
+        description: 'Ejercicios predefinidos para trabajar mejor cada rutina.',
         icon: FaDumbbell,
         accent: 'from-zinc-300 via-red-400 to-red-600',
-        visible: esAdminAmplio || esInstructor
+        visible: esAdmin || esInstructor
       },
       {
         key: 'alumnos',
         to: '/dashboard/alumnos',
         title: 'Alumnos',
-        description:
-          'Gestión de perfiles, progreso y estado de cada alumno.',
+        description: 'Gestión de perfiles, progreso y estado de cada alumno.',
         icon: FaUserGraduate,
         accent: 'from-red-700 via-rose-500 to-pink-300',
-        visible: esAdminAmplio || esInstructor
+        visible: esAdmin || esInstructor
       },
       {
         key: 'rutinas',
         to: '/dashboard/routines',
         title: 'Rutinas',
-        description:
-          'Planificación y asignación de entrenamientos.',
+        description: 'Planificación y asignación de entrenamientos.',
         icon: FaClipboardList,
         accent: 'from-orange-500 via-red-500 to-red-300',
-        visible: esAdminAmplio || esInstructor
+        visible: esAdmin || esInstructor
+      },
+      {
+        key: 'leads',
+        to: '/dashboard/leads',
+        title: 'Prospectos',
+        description: 'Seguimiento de consultas, pruebas y futuros ingresos.',
+        icon: FaRunning,
+        accent: 'from-fuchsia-700 via-red-500 to-rose-300',
+        visible: esAdmin || esVendedor,
+        badge: (
+          <BadgeTestClasses userId={userId} userLevel={userLevel} size="lg" />
+        )
       },
       {
         key: 'estadisticas',
         to: '/dashboard/estadisticas',
         title: 'Analíticas',
-        description:
-          'Vista general del rendimiento operativo del gimnasio.',
+        description: 'Vista general del rendimiento operativo del gimnasio.',
         icon: FaChartBar,
         accent: 'from-red-800 via-red-500 to-amber-300',
-        visible: esAdminAmplio
+        visible: esAdmin
       }
     ].filter((item) => item.visible);
   }, [role, userId, userLevel]);
@@ -221,9 +173,7 @@ const AdminPage = () => {
 
         <div className="relative z-10 w-full max-w-md rounded-[26px] border border-white/10 bg-white/[0.05] p-6 text-center shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl">
           <div className="mx-auto h-14 w-14 animate-pulse rounded-2xl bg-gradient-to-br from-red-700 via-red-500 to-red-300 shadow-[0_0_30px_rgba(239,68,68,0.30)]" />
-          <p className="titulo mt-5 text-3xl uppercase text-white">
-            Cargando
-          </p>
+          <p className="titulo mt-5 text-3xl uppercase text-white">Cargando</p>
         </div>
       </div>
     );
@@ -252,85 +202,6 @@ const AdminPage = () => {
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 pb-14 pt-28 sm:px-6 sm:pt-32 lg:px-8">
           <motion.div variants={containerV} initial="hidden" animate="show">
-            <motion.div
-              variants={itemV}
-              className="mb-8 overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.05] shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl"
-            >
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-red-400/70 to-transparent" />
-
-              <div className="relative p-6 sm:p-7">
-                <div className="pointer-events-none absolute -right-10 top-0 h-28 w-28 rounded-full bg-red-500/10 blur-3xl" />
-
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-red-200/84">
-                      Altos Roca Gym
-                    </div>
-
-                    <h1 className="titulo mt-2 text-4xl uppercase text-white sm:text-5xl">
-                      Centro de control
-                    </h1>
-
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/62 sm:text-base">
-                      Bienvenido, {displayName}. Desde acá gestionás la operación
-                      diaria del gym con accesos rápidos a los módulos más
-                      importantes según tu perfil.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-[20px] border border-white/10 bg-black/25 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-500/18 bg-red-500/10 text-red-300">
-                          <FaShieldAlt className="text-sm" />
-                        </div>
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.16em] text-white/42">
-                            Perfil
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white/90">
-                            {roleLabelMap[role] || userLevel}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[20px] border border-white/10 bg-black/25 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-500/18 bg-red-500/10 text-red-300">
-                          <FaLayerGroup className="text-sm" />
-                        </div>
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.16em] text-white/42">
-                            Módulos
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white/90">
-                            {modules.length} habilitados
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[20px] border border-white/10 bg-black/25 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-500/18 bg-red-500/10 text-red-300">
-                          <FaDumbbell className="text-sm" />
-                        </div>
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.16em] text-white/42">
-                            Enfoque
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white/90">
-                            Gestión diaria
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {modules.map((module) => (
                 <ModuleCard
@@ -343,10 +214,6 @@ const AdminPage = () => {
                   badge={module.badge}
                 />
               ))}
-
-              {/* <motion.div variants={itemV} className="h-full">
-                <CardRecaptacion userLevel={userLevel} userId={userId} />
-              </motion.div> */}
             </div>
           </motion.div>
         </div>

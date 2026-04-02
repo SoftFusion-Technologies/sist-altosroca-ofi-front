@@ -373,18 +373,24 @@ const LocalesGet = () => {
             </div>
           </motion.div>
 
+          {/* Benjamin Orellana - 02 / 04 / 2026 - Rediseño visual del bloque de filtros de sedes para lograr una interfaz más compacta, moderna y ordenada */}
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.05 }}
-            className="rounded-[30px] border border-white/10 bg-white/[0.05] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.30)] backdrop-blur-xl"
+            className="rounded-[28px] border border-white/10 bg-[#0b0b0d]/95 p-4 sm:p-5 shadow-[0_18px_50px_rgba(0,0,0,0.30)]"
           >
-            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <div className="mb-2 inline-flex rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-200">
+                  Gestión de sedes
+                </div>
+
+                <h2 className="text-xl font-bold tracking-tight text-white">
                   Filtros y búsqueda
                 </h2>
-                <p className="mt-1 text-sm text-white/60">
+
+                <p className="mt-1 text-sm text-zinc-400">
                   Buscá sedes por nombre, código, ciudad, dirección o teléfono.
                 </p>
               </div>
@@ -392,7 +398,7 @@ const LocalesGet = () => {
               {canManageUsers && (
                 <button
                   onClick={() => openModal()}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-800 via-red-600 to-red-400 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(220,38,38,0.26)] transition-all duration-300 hover:scale-[1.01]"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-800 via-red-600 to-red-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_45px_rgba(220,38,38,0.24)] transition-all duration-300 hover:translate-y-[-1px]"
                 >
                   <FaPlus />
                   Nueva sede
@@ -400,55 +406,95 @@ const LocalesGet = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[auto,auto,auto,1fr]">
-              <select
-                value={orderBy}
-                onChange={(e) => setOrderBy(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
-                aria-label="Ordenar por"
-              >
-                <option value="id">ID</option>
-                <option value="nombre">Nombre</option>
-                <option value="codigo">Código</option>
-                <option value="ciudad">Ciudad</option>
-                <option value="provincia">Provincia</option>
-              </select>
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
+              <div className="xl:col-span-5">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                  Buscar sede
+                </label>
 
-              <select
-                value={orderDir}
-                onChange={(e) => setOrderDir(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
-                aria-label="Dirección de orden"
-              >
-                <option value="ASC">Ascendente</option>
-                <option value="DESC">Descendente</option>
-              </select>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m21 21-4.35-4.35m1.85-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+                      />
+                    </svg>
+                  </span>
 
-              <select
-                value={limit}
-                onChange={(e) => {
-                  setLimit(Number(e.target.value));
-                  setPage(1);
-                }}
-                className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
-                aria-label="Items por página"
-              >
-                <option value={6}>6</option>
-                <option value={12}>12</option>
-                <option value={24}>24</option>
-                <option value={48}>48</option>
-              </select>
+                  <input
+                    type="text"
+                    placeholder="Nombre, dirección, ciudad, código o teléfono..."
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full rounded-2xl border border-white/10 bg-[#09090b] py-3 pl-11 pr-4 text-white placeholder:text-zinc-500 outline-none transition-all duration-300 focus:border-red-500/40 focus:bg-[#101013]"
+                  />
+                </div>
+              </div>
 
-              <input
-                type="text"
-                placeholder="Buscar por nombre, dirección, ciudad, código o teléfono..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-white/30 outline-none transition-all duration-300 focus:border-red-500/35 focus:bg-red-500/[0.06]"
-              />
+              <div className="xl:col-span-3">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                  Ordenar por
+                </label>
+                <select
+                  value={orderBy}
+                  onChange={(e) => setOrderBy(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-[#09090b] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/40 focus:bg-[#101013]"
+                  aria-label="Ordenar por"
+                >
+                  <option value="id">ID</option>
+                  <option value="nombre">Nombre</option>
+                  <option value="codigo">Código</option>
+                  <option value="ciudad">Ciudad</option>
+                  <option value="provincia">Provincia</option>
+                </select>
+              </div>
+
+              <div className="xl:col-span-2">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                  Dirección
+                </label>
+                <select
+                  value={orderDir}
+                  onChange={(e) => setOrderDir(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-[#09090b] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/40 focus:bg-[#101013]"
+                  aria-label="Dirección de orden"
+                >
+                  <option value="ASC">Ascendente</option>
+                  <option value="DESC">Descendente</option>
+                </select>
+              </div>
+
+              <div className="xl:col-span-2">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                  Mostrar
+                </label>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="w-full rounded-2xl border border-white/10 bg-[#09090b] px-4 py-3 text-white outline-none transition-all duration-300 focus:border-red-500/40 focus:bg-[#101013]"
+                  aria-label="Items por página"
+                >
+                  <option value={6}>6</option>
+                  <option value={12}>12</option>
+                  <option value={24}>24</option>
+                  <option value={48}>48</option>
+                </select>
+              </div>
             </div>
           </motion.div>
 
