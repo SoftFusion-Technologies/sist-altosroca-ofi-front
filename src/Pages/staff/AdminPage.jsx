@@ -141,9 +141,18 @@ const AdminPage = () => {
         visible: esAdmin || esInstructor
       },
       {
+        key: 'pendientes',
+        to: '/dashboard/pendientes',
+        title: 'Pendientes',
+        description: 'Alumnos del gimnasio que se autocrearon',
+        icon: FaUserGraduate,
+        accent: 'from-orange-500 via-red-500 to-red-300',
+        visible: esAdmin || esInstructor
+      },
+      {
         key: 'leads',
         to: '/dashboard/leads',
-        title: 'Prospectos',
+        title: 'Leads',
         description: 'Seguimiento de consultas, pruebas y futuros ingresos.',
         icon: FaRunning,
         accent: 'from-fuchsia-700 via-red-500 to-rose-300',
@@ -155,8 +164,9 @@ const AdminPage = () => {
       {
         key: 'estadisticas',
         to: '/dashboard/estadisticas',
-        title: 'Analíticas',
-        description: 'Vista general del rendimiento operativo del gimnasio.',
+        title: 'Estadísticas',
+        description:
+          'Vista general de las métricas y rendimiento del profesor.',
         icon: FaChartBar,
         accent: 'from-red-800 via-red-500 to-amber-300',
         visible: esAdmin

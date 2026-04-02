@@ -330,7 +330,7 @@ const AlumnosGet = () => {
                   </div>
 
                   <h1
-                    className="mt-4 text-3xl font-black uppercase tracking-tight text-white md:text-4xl"
+                    className="mt-4 titulo uppercase text-3xl font-black uppercase tracking-tight text-white md:text-4xl"
                     style={fontTitle}
                   >
                     Listado de alumnos

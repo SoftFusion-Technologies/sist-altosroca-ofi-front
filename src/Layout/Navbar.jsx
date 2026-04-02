@@ -5,11 +5,10 @@ import { NavLink } from 'react-router-dom';
 import Logo from '../img/Logo.webp';
 import ParticlesBackground from '../components/ParticlesBackground';
 import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
-
+import LeadCaptureModal from '../components/LeadCaptureModal';
 const fallbackNavItems = [
   { label: 'INICIO', path: '/inicio' },
   { label: 'HORARIOS', path: '/horarios' },
-  { label: 'TURNOS', path: '/turnos' },
   // { label: 'SOCIOS', path: '/socios' },
   { label: 'ESPACIOS', path: '/espacios' },
   { label: 'SUPLEMENTOS', path: '/suplementos' },
@@ -19,6 +18,13 @@ const fallbackNavItems = [
 const Navbar = () => {
   const [nav, setNav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [leadModalOpen, setLeadModalOpen] = useState(false);
+
+  // Benjamin Orellana - 2026-04-02 - Se agrega apertura del modal público de captación de leads desde el CTA principal del navbar
+  const handleOpenLeadModal = () => {
+    setLeadModalOpen(true);
+    setNav(false);
+  };
 
   const handleNav = () => setNav(!nav);
 
@@ -195,15 +201,15 @@ const Navbar = () => {
             ))}
           </div>
 
-          <NavLink to="/turnos">
-            <button
-              className={`btn-logo ${scrolled ? 'btn-logo--sm' : 'btn-logo--md'}`}
-            >
-              <span className="btn-logo__text">
-                {scrolled ? 'Turnos' : 'Pedir turno'}
-              </span>
-            </button>
-          </NavLink>
+          <button
+            type="button"
+            onClick={handleOpenLeadModal}
+            className={`btn-logo ${scrolled ? 'btn-logo--sm' : 'btn-logo--md'}`}
+          >
+            <span className="btn-logo__text">
+              {scrolled ? 'comenzar' : 'Quiero comenzar'}
+            </span>
+          </button>
         </div>
 
         {/* Menú mobile */}
@@ -296,17 +302,23 @@ const Navbar = () => {
             </div>
 
             <div className="flex justify-center">
-              <NavLink to="/turnos" onClick={handleNav}>
-                <button className="btn-logo btn-logo--lg">
-                  <span className="btn-logo__text">Pedir turno</span>
-                </button>
-              </NavLink>
+              <button
+                type="button"
+                onClick={handleOpenLeadModal}
+                className="btn-logo btn-logo--lg"
+              >
+                <span className="btn-logo__text">Quiero comenzar</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+      <LeadCaptureModal
+        open={leadModalOpen}
+        onClose={() => setLeadModalOpen(false)}
+      />
     </nav>
   );
-};
+};;
 
 export default Navbar;
