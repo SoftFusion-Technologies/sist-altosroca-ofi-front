@@ -4,6 +4,22 @@ import ParticlesBackground from '../../../../components/ParticlesBackground';
 import { useAuth } from '../../../../AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
+/*
+ * Programador: Benjamin Orellana
+ * Fecha Creación: 06/04/2026
+ * Versión: 1.1
+ *
+ * Descripción:
+ * Modal de objetivo mensual del alumno.
+ * Se mantiene la estructura visual original y se adapta la paleta
+ * a la identidad Altos Roca, mejorando además la visibilidad de texto
+ * en textarea e inputs.
+ *
+ * Tema: Objetivos mensuales del alumno
+ * Capa: Frontend
+ */
+
+/* Benjamin Orellana - 06/04/2026 - Ajuste visual a paleta Altos Roca y corrección de visibilidad en campos de formulario */
 const StudentGoalModal = ({ studentId, onGoalCreated }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [goal, setGoal] = useState('');
@@ -152,7 +168,6 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
         edad: edad || null,
         grasa_corporal: grasaCorporal || null,
         cintura_cm: cinturaCm || null
-        // ❌ Se eliminó control_antropometrico del payload
       });
 
       setModalOpen(false);
@@ -171,12 +186,12 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
   // Textos adaptados a 6 pasos (sin control antropométrico)
   const mensajes = {
     nuevo: {
-      1: '¡Hola {nomyape}! Empecemos por definir tu objetivo para este mes. ¿Qué te gustaría lograr?',
+      1: 'Hola {nomyape}, empecemos por definir tu objetivo para este mes. ¿Qué te gustaría lograr?',
       2: '{nomyape}, contanos cuál es tu altura en centímetros para personalizar tu plan.',
       3: 'Perfecto, {nomyape}. Ahora ingresá tu peso actual en kilogramos.',
       4: 'Gracias, {nomyape}. ¿Cuál es tu edad?',
       5: '{nomyape}, ingresá tu medida de cintura en centímetros (opcional).',
-      6: '¡Listo {nomyape}! Este es el resumen con toda la información que cargaste. ¡Gran trabajo!'
+      6: 'Listo {nomyape}. Este es el resumen con toda la información que cargaste.'
     },
     redefinir: {
       1: 'Hola de nuevo {nomyape}, ¿querés actualizar tu objetivo mensual?',
@@ -184,7 +199,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
       3: '{nomyape}, ¿querés actualizar tu peso actual en kilogramos?',
       4: '¿Tu edad sigue siendo la misma, {nomyape}?',
       5: '{nomyape}, si cambió tu cintura podés actualizar el valor en centímetros (opcional).',
-      6: 'Perfecto {nomyape}, actualizamos tu información. ¡Vamos por más!'
+      6: 'Perfecto {nomyape}, actualizamos tu información.'
     }
   };
 
@@ -198,10 +213,11 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
       {modalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
           <ParticlesBackground />
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-8 relative">
+
+          <div className="bg-white rounded-xl shadow-[0_25px_70px_-22px_rgba(209,31,47,0.35)] border border-red-100 max-w-lg w-full p-8 relative">
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#d11f2f] transition"
               aria-label="Cerrar modal"
             >
               ✖
@@ -215,11 +231,11 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="titulo text-xl uppercase font-semibold mb-5 text-center text-gray-800"
+                  className="titulo text-xl uppercase font-semibold mb-5 text-center text-[#111111]"
                   dangerouslySetInnerHTML={{
                     __html: mensajeActual.replace(
                       '{nomyape}',
-                      `<span class="text-purple-700">${primerNombre}</span>`
+                      `<span class="text-[#d11f2f] titulo font-semibold">${primerNombre}</span>`
                     )
                   }}
                 />
@@ -227,10 +243,9 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
             </AnimatePresence>
 
             <div className="max-w-xl mx-auto">
-              {/* Barra de progreso (6 pasos) */}
-              <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-6">
+              <div className="w-full bg-red-50 h-3 rounded-full overflow-hidden mb-6">
                 <div
-                  className="bg-purple-500 h-full transition-all duration-300"
+                  className="bg-gradient-to-r from-[#7f101c] via-[#d11f2f] to-[#ef3347] h-full transition-all duration-300"
                   style={{ width: `${(step / 6) * 100}%` }}
                 />
               </div>
@@ -246,15 +261,15 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                   >
                     {step === 1 && (
                       <div className="mb-4">
-                        <label className="block mb-2 font-semibold">
+                        <label className="block mb-2 font-semibold text-gray-800">
                           Objetivo
                         </label>
                         <textarea
                           value={goal}
                           onChange={(e) => setGoal(e.target.value)}
-                          placeholder="Define un objetivo claro y medible para este mes (p. ej., 'Perder 3 kg', 'Correr 5km 3 veces por semana')."
+                          placeholder="Define un objetivo claro y medible para este mes."
                           rows={3}
-                          className="w-full border border-gray-300 rounded-lg p-4"
+                          className="w-full border border-red-100 rounded-lg p-4 text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                           required
                         />
                       </div>
@@ -267,7 +282,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           placeholder="Altura (cm)"
                           value={alturaCm}
                           onChange={(e) => setAlturaCm(Number(e.target.value))}
-                          className="w-full border p-2 rounded"
+                          className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                           required
                         />
                       </div>
@@ -280,7 +295,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           placeholder="Peso (kg)"
                           value={pesoKg}
                           onChange={(e) => setPesoKg(Number(e.target.value))}
-                          className="w-full border p-2 rounded"
+                          className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                           required
                         />
                       </div>
@@ -293,13 +308,12 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           placeholder="Edad"
                           value={edad}
                           onChange={(e) => setEdad(Number(e.target.value))}
-                          className="w-full border p-2 rounded"
+                          className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                           required
                         />
                       </div>
                     )}
 
-                    {/* Paso 5: Cintura (opcional) */}
                     {step === 5 && (
                       <div className="mb-4 space-y-2">
                         <input
@@ -308,7 +322,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           placeholder="Cintura (cm) — opcional"
                           value={cinturaCm}
                           onChange={(e) => setCinturaCm(e.target.value)}
-                          className="w-full border p-2 rounded"
+                          className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                         />
                         <button
                           type="button"
@@ -316,14 +330,13 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                             setCinturaCm(null);
                             setStep(6);
                           }}
-                          className="w-full py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition"
+                          className="w-full py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-[#111111] font-semibold transition"
                         >
                           Omitir este paso
                         </button>
                       </div>
                     )}
 
-                    {/* Paso 6: Resumen */}
                     {step === 6 && (
                       <div className="mb-4 space-y-4">
                         <div className="space-y-2">
@@ -334,7 +347,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                             value={goal}
                             onChange={(e) => setGoal(e.target.value)}
                             rows={2}
-                            className="w-full border p-2 rounded"
+                            className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                           />
                         </div>
 
@@ -349,7 +362,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                               onChange={(e) =>
                                 setAlturaCm(Number(e.target.value))
                               }
-                              className="w-full border p-2 rounded"
+                              className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                             />
                           </div>
 
@@ -363,7 +376,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                               onChange={(e) =>
                                 setPesoKg(Number(e.target.value))
                               }
-                              className="w-full border p-2 rounded"
+                              className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                             />
                           </div>
 
@@ -375,7 +388,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                               type="number"
                               value={edad}
                               onChange={(e) => setEdad(Number(e.target.value))}
-                              className="w-full border p-2 rounded"
+                              className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                             />
                           </div>
 
@@ -387,15 +400,15 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                               type="number"
                               value={cinturaCm || ''}
                               onChange={(e) => setCinturaCm(e.target.value)}
-                              className="w-full border p-2 rounded"
+                              className="w-full border border-red-100 p-2 rounded text-gray-800 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#d11f2f]/20 focus:border-[#d11f2f]"
                             />
                           </div>
                         </div>
 
                         <div className="text-center mt-4">
-                          <div className="text-lg font-medium">
+                          <div className="text-lg font-medium text-gray-800">
                             Tu IMC es:{' '}
-                            <span className="font-bold text-purple-700">
+                            <span className="font-bold text-[#d11f2f]">
                               {imc}
                             </span>
                           </div>
@@ -409,7 +422,6 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                       </div>
                     )}
 
-                    {/* Navegación */}
                     <div className="flex justify-between items-center gap-4 mt-6">
                       {step > 1 && (
                         <button
@@ -417,7 +429,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           onClick={() =>
                             setStep((prev) => Math.max(prev - 1, 1))
                           }
-                          className="w-full py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-black font-semibold transition"
+                          className="w-full py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-[#111111] font-semibold transition"
                         >
                           Anterior
                         </button>
@@ -441,7 +453,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                             (step === 3 && pesoKg <= 0) ||
                             (step === 4 && edad <= 0)
                               ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-purple-600 hover:bg-purple-700'
+                              : 'bg-[#d11f2f] hover:bg-[#b71c2b]'
                           }`}
                         >
                           Siguiente
@@ -455,7 +467,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
                           className={`w-full py-3 rounded-lg text-white font-semibold transition ${
                             saving
                               ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-purple-600 hover:bg-purple-700'
+                              : 'bg-[#d11f2f] hover:bg-[#b71c2b]'
                           }`}
                         >
                           {saving ? 'Guardando...' : 'Guardar Objetivo'}

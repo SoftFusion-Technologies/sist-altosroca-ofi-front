@@ -2,37 +2,62 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import {
+  FiAlertCircle,
+  FiCheckCircle,
+  FiLoader,
+  FiActivity,
+  FiTarget,
+  FiMessageSquare
+} from 'react-icons/fi';
 import ModalSuccess from '../../../components/Forms/ModalSuccess';
 import ModalError from '../../../components/Forms/ModalError';
+
+/*
+ * Programador: Benjamin Orellana
+ * Fecha Creación: 06/04/2026
+ * Versión: 2.0
+ *
+ * Descripción:
+ * Formulario de registro de RM rediseñado con identidad visual Altos Roca.
+ * Se corrige la carga de ejercicios, se mejora la jerarquía visual y se
+ * mantiene la lógica de guardado existente.
+ *
+ * Tema: Registro de RM
+ * Capa: Frontend
+ */
+
+/* Benjamin Orellana - 06/04/2026 - Helpers visuales para alinear el formulario RM con la estética Altos Roca */
+const inputClass =
+  'w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15';
+
+const labelClass =
+  'mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/55';
+
+const sectionCardClass =
+  'rounded-[24px] border border-white/10 bg-white/[0.04] backdrop-blur-xl p-4';
 
 export default function RegistroRM({ studentId, onClose }) {
   const [ejercicios, setEjercicios] = useState([]);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingEjercicios, setLoadingEjercicios] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [errorModal, setErrorModal] = useState(false);
 
   useEffect(() => {
     const fetchEjercicios = async () => {
       try {
-        const yaExisteParaHoy = rms.some(
-          (r) =>
-            r.ejercicio === form.ejercicio &&
-            new Date(r.fecha).toDateString() === new Date().toDateString()
-        );
+        setLoadingEjercicios(true);
 
-        if (yaExisteParaHoy) {
-          alert('Ya registraste este ejercicio hoy.');
-          return;
-        }
-        
         const res = await axios.get('http://localhost:8080/api/ejercicios');
-        setEjercicios(res.data); // Suponiendo que es un array de strings
+        const data = Array.isArray(res.data) ? res.data : [];
+
+        setEjercicios(data);
       } catch (err) {
         console.warn(
-          'No se pudo cargar la lista de ejercicios. Se usará una por defecto.'
+          'No se pudo cargar la lista de ejercicios. Se utilizará una lista por defecto.'
         );
         setEjercicios([
           'Sentadilla',
@@ -42,8 +67,11 @@ export default function RegistroRM({ studentId, onClose }) {
           'Press Militar',
           'Dominadas lastradas'
         ]);
+      } finally {
+        setLoadingEjercicios(false);
       }
     };
+
     fetchEjercicios();
   }, []);
 
@@ -76,19 +104,24 @@ export default function RegistroRM({ studentId, onClose }) {
           comentario: values.comentario.trim() || null
         });
 
-        if (res.status !== 200) throw new Error('Error al registrar RM');
+        if (res.status !== 200) {
+          throw new Error('Error al registrar RM');
+        }
+
+        setSuccessMsg('RM guardado correctamente');
         setShowModal(true);
-        setTimeout(() => {
-          setShowModal(false);
-          onClose();
-        }, 2000);
+
         formik.resetForm();
 
         setTimeout(() => {
+          setShowModal(false);
           onClose(true);
-        }, 1000);
+        }, 1200);
       } catch (err) {
-        setError(err.response?.data?.mensajeError || 'Error al guardar');
+        const mensaje =
+          err.response?.data?.mensajeError || 'Error al guardar el registro RM';
+        setError(mensaje);
+        setErrorModal(true);
       } finally {
         setLoading(false);
       }
@@ -96,134 +129,179 @@ export default function RegistroRM({ studentId, onClose }) {
   });
 
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-5">
-      {/* Ejercicio */}
-      <div>
-        <label
-          htmlFor="ejercicio"
-          className="block mb-1 text-sm font-medium text-gray-700"
-        >
-          Ejercicio
-        </label>
-        <select
-          name="ejercicio"
-          id="ejercicio"
-          value={formik.values.ejercicio}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          className="w-full border px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Seleccione un ejercicio</option>
-          {ejercicios.map((e, i) => (
-            <option key={i} value={e}>
-              {e}
+    <div className="space-y-5">
+      <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(145deg,rgba(239,51,71,0.12)_0%,rgba(255,255,255,0.025)_46%,rgba(0,0,0,0.45)_100%)] p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-[#ef3347]/20 bg-[#ef3347]/10 px-4 py-1 text-[11px] uppercase tracking-[0.24em] text-[#ff98a5]">
+            Fuerza máxima
+          </span>
+
+          <span className="text-[22px] uppercase leading-none text-[#ff5a6f]">
+            Altos Roca
+          </span>
+        </div>
+
+        <h3 className="mt-4 text-2xl font-black uppercase tracking-tight text-white">
+          Registrar RM
+        </h3>
+
+        <p className="mt-2 text-sm leading-6 text-white/60">
+          Cargá una nueva marca máxima del alumno con una experiencia más clara,
+          moderna y alineada al ecosistema Altos Roca.
+        </p>
+      </div>
+
+      <form onSubmit={formik.handleSubmit} className="space-y-5">
+        <div className={sectionCardClass}>
+          <label htmlFor="ejercicio" className={labelClass}>
+            <FiActivity />
+            Ejercicio
+          </label>
+
+          <select
+            name="ejercicio"
+            id="ejercicio"
+            value={formik.values.ejercicio}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            className={inputClass}
+            disabled={loadingEjercicios}
+          >
+            <option value="" className="text-slate-900">
+              {loadingEjercicios
+                ? 'Cargando ejercicios...'
+                : 'Seleccione un ejercicio'}
             </option>
-          ))}
-        </select>
-        {formik.touched.ejercicio && formik.errors.ejercicio && (
-          <p className="text-sm text-red-600 mt-1">{formik.errors.ejercicio}</p>
+            {ejercicios.map((e, i) => (
+              <option key={i} value={e} className="text-slate-900">
+                {e}
+              </option>
+            ))}
+          </select>
+
+          {formik.touched.ejercicio && formik.errors.ejercicio && (
+            <p className="mt-2 text-sm text-red-300">
+              {formik.errors.ejercicio}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={sectionCardClass}>
+            <label htmlFor="peso_levantado" className={labelClass}>
+              <FiTarget />
+              Peso levantado
+            </label>
+
+            <input
+              type="number"
+              name="peso_levantado"
+              step="0.01"
+              value={formik.values.peso_levantado}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              placeholder="Ej. 100"
+              className={inputClass}
+            />
+
+            {formik.touched.peso_levantado && formik.errors.peso_levantado && (
+              <p className="mt-2 text-sm text-red-300">
+                {formik.errors.peso_levantado}
+              </p>
+            )}
+          </div>
+
+          <div className={sectionCardClass}>
+            <label htmlFor="repeticiones" className={labelClass}>
+              <FiTarget />
+              Repeticiones
+            </label>
+
+            <input
+              type="number"
+              name="repeticiones"
+              min="1"
+              step="1"
+              value={formik.values.repeticiones}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              placeholder="Ej. 3"
+              className={inputClass}
+            />
+
+            {formik.touched.repeticiones && formik.errors.repeticiones && (
+              <p className="mt-2 text-sm text-red-300">
+                {formik.errors.repeticiones}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className={sectionCardClass}>
+          <label htmlFor="comentario" className={labelClass}>
+            <FiMessageSquare />
+            Comentario
+          </label>
+
+          <textarea
+            name="comentario"
+            rows={4}
+            value={formik.values.comentario}
+            onChange={formik.handleChange}
+            placeholder="Observaciones del intento, sensaciones, técnica o contexto."
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <FiAlertCircle className="text-lg" />
+            {error}
+          </div>
         )}
-      </div>
 
-      {/* Peso y Reps */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="peso_levantado"
-            className="block mb-1 text-sm font-medium text-gray-700"
+        {successMsg && (
+          <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            <FiCheckCircle className="text-lg" />
+            {successMsg}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="submit"
+            disabled={loading || loadingEjercicios}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold text-white transition ${
+              loading || loadingEjercicios
+                ? 'cursor-not-allowed border border-white/10 bg-white/[0.08] text-white/40'
+                : 'border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] hover:scale-[1.01]'
+            }`}
           >
-            Peso (kg)
-          </label>
-          <input
-            type="number"
-            name="peso_levantado"
-            step="0.01"
-            value={formik.values.peso_levantado}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            className="w-full border px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500"
-          />
-          {formik.touched.peso_levantado && formik.errors.peso_levantado && (
-            <p className="text-sm text-red-600 mt-1">
-              {formik.errors.peso_levantado}
-            </p>
-          )}
+            {loading ? (
+              <>
+                <FiLoader className="animate-spin text-lg" />
+                Registrando...
+              </>
+            ) : (
+              <>
+                <FiCheckCircle className="text-lg" />
+                Registrar RM
+              </>
+            )}
+          </button>
         </div>
 
-        <div>
-          <label
-            htmlFor="repeticiones"
-            className="block mb-1 text-sm font-medium text-gray-700"
-          >
-            Repeticiones
-          </label>
-          <input
-            type="number"
-            name="repeticiones"
-            min="1"
-            step="1"
-            value={formik.values.repeticiones}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            className="w-full border px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500"
-          />
-          {formik.touched.repeticiones && formik.errors.repeticiones && (
-            <p className="text-sm text-red-600 mt-1">
-              {formik.errors.repeticiones}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Comentario */}
-      <div>
-        <label
-          htmlFor="comentario"
-          className="block mb-1 text-sm font-medium text-gray-700"
-        >
-          Comentario (opcional)
-        </label>
-        <textarea
-          name="comentario"
-          rows={3}
-          value={formik.values.comentario}
-          onChange={formik.handleChange}
-          className="w-full border px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 resize-none"
+        <ModalSuccess
+          textoModal="RM guardado con éxito"
+          isVisible={showModal}
+          onClose={() => setShowModal(false)}
         />
-      </div>
 
-      {/* Mensajes */}
-      {error && (
-        <div className="flex items-center text-red-600 gap-2 text-sm">
-          <FiAlertCircle className="text-lg" />
-          {error}
-        </div>
-      )}
-      {successMsg && (
-        <div className="flex items-center text-green-600 gap-2 text-sm">
-          <FiCheckCircle className="text-lg" />
-          {successMsg}
-        </div>
-      )}
-
-      {/* Botón */}
-      <button
-        type="submit"
-        disabled={loading}
-        className={`w-full py-2 rounded-md text-white font-semibold ${
-          loading
-            ? 'bg-indigo-300 cursor-not-allowed'
-            : 'bg-indigo-600 hover:bg-indigo-700'
-        } transition`}
-      >
-        {loading ? 'Registrando...' : 'Registrar RM'}
-      </button>
-      <ModalSuccess
-        textoModal="RM Guardado con éxito"
-        isVisible={showModal}
-        onClose={() => setShowModal(false)}
-      />
-      <ModalError isVisible={errorModal} onClose={() => setErrorModal(false)} />
-    </form>
+        <ModalError
+          isVisible={errorModal}
+          onClose={() => setErrorModal(false)}
+        />
+      </form>
+    </div>
   );
 }

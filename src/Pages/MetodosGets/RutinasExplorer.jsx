@@ -23,6 +23,8 @@ import NavbarStaff from '../staff/NavbarStaff';
 import clsx from 'clsx';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import ModalCrearRutina from './AlumnoPerfil/ModalCrearRutina';
+import { useAuth } from '../../AuthContext';
 
 const BASE_URL = 'http://localhost:8080';
 const RUTINAS_LIST_ROUTE = '/rutinasss';
@@ -303,7 +305,7 @@ export default function RutinasExplorer() {
   const [q, setQ] = useState('');
   const [vigentes, setVigentes] = useState(false);
   const [instructorId, setInstructorId] = useState('');
-
+  const {userId} = useAuth();
   const [users, setUsers] = useState([]);
   const [list, setList] = useState([]);
   const [meta, setMeta] = useState({
@@ -343,6 +345,9 @@ export default function RutinasExplorer() {
     d.setDate(d.getDate() + 7);
     return d.toISOString().slice(0, 10);
   });
+
+  /* Benjamin Orellana - 06/04/2026 - Estado local para abrir y cerrar el modal de creación de rutinas desde el explorador */
+  const [modalCrearRutinaVisible, setModalCrearRutinaVisible] = useState(false);
 
   useEffect(() => {
     const fetchAlumnos = async () => {
@@ -413,8 +418,9 @@ export default function RutinasExplorer() {
     return { bloques, ejercicios, series };
   };
 
+  /* Benjamin Orellana - 06/04/2026 - Apertura del modal de creación de rutina base desde el botón Nueva Rutina */
   const handleNuevaRutina = () => {
-    // Benjamin Orellana - 2026-04-02 - Placeholder visual para futura alta de rutinas.
+    setModalCrearRutinaVisible(true);
   };
 
   useEffect(() => {
@@ -590,7 +596,7 @@ export default function RutinasExplorer() {
       setCargandoAsignacion(false);
     }
   };
-  
+
   const totalBloques = useMemo(
     () =>
       list.reduce((acc, r) => {
@@ -1603,6 +1609,26 @@ export default function RutinasExplorer() {
           )}
         </AnimatePresence>
       </div>
+      {/* Benjamin Orellana - 06/04/2026 - Montaje del modal de creación de rutina desde el explorador global */}
+      {modalCrearRutinaVisible && (
+        <ModalCrearRutina
+          studentId={null}
+          userId={userId}
+          onClose={() => setModalCrearRutinaVisible(false)}
+          onRutinaCreada={async () => {
+            setModalCrearRutinaVisible(false);
+            await fetchList(1);
+
+            await swalAltosRoca({
+              icon: 'success',
+              title: 'Rutina creada',
+              text: 'La rutina se creó correctamente.',
+              timer: 1600,
+              showConfirmButton: false
+            });
+          }}
+        />
+      )}
     </>
   );
 }

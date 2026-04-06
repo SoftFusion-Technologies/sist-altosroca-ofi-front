@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiSearch,
   FiCalendar,
@@ -12,9 +13,10 @@ import {
   FiArrowLeft,
   FiGrid,
   FiActivity,
-  FiHash
+  FiHash,
+  FiLayers,
+  FiBarChart2
 } from 'react-icons/fi';
-// import Navbar from '../../../components/Header/NavBar/NavBar';
 import NavbarStaff from '../../staff/NavbarStaff';
 import { formatDdMmYyyySmart } from '../../../utils/fechas';
 import ParticlesBackground from '../../../components/ParticlesBackground';
@@ -34,19 +36,34 @@ const fmtDate = (iso) => {
   }
 };
 
+/* Benjamin Orellana - 06/04/2026 - Helpers visuales para adaptar el listado global del alumno al estilo Altos Roca */
+const shellClass =
+  'border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-[0_18px_55px_-28px_rgba(0,0,0,0.48)]';
+
+const softCardClass =
+  'rounded-[24px] border border-white/10 bg-white/[0.04] backdrop-blur-xl';
+
+const inputClass =
+  'w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 ring-1 ring-white/10 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15';
+
+const buttonSoftClass =
+  'inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white/85 transition hover:bg-white/[0.08]';
+
+const buttonPrimaryClass =
+  'inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-4 py-3 text-sm font-semibold text-white transition hover:scale-[1.01]';
+
 export default function LogsGlobalAlumno() {
   const navigate = useNavigate();
   const [sp, setSp] = useSearchParams();
 
-  // query params
   const student_id = sp.get('student_id') || '';
   const [page, setPage] = useState(Number(sp.get('page') || 1));
   const [limit, setLimit] = useState(Number(sp.get('limit') || 20));
   const [q, setQ] = useState(sp.get('q') || '');
   const [dateFrom, setDateFrom] = useState(sp.get('date_from') || '');
   const [dateTo, setDateTo] = useState(sp.get('date_to') || '');
+  const [refreshTick, setRefreshTick] = useState(0);
 
-  // data
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [colors, setColors] = useState([]);
@@ -56,7 +73,15 @@ export default function LogsGlobalAlumno() {
   const canSearch = useMemo(() => Boolean(student_id), [student_id]);
   const topRef = useRef(null);
 
-  // sync URL
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const from = total === 0 ? 0 : (page - 1) * limit + 1;
+  const to = Math.min(page * limit, total);
+
+  /* Benjamin Orellana - 06/04/2026 - Contador visual de filtros activos para mostrar resumen operativo */
+  const activeFilters = useMemo(() => {
+    return [q, dateFrom, dateTo].filter(Boolean).length;
+  }, [q, dateFrom, dateTo]);
+
   useEffect(() => {
     const next = new URLSearchParams();
     if (student_id) next.set('student_id', student_id);
@@ -68,30 +93,33 @@ export default function LogsGlobalAlumno() {
     setSp(next, { replace: true });
   }, [student_id, page, limit, q, dateFrom, dateTo, setSp]);
 
-  // fetch colores de bloques (para acentos)
   useEffect(() => {
     let cancel = false;
+
     axios
       .get(`${API}/rutina-colores`)
       .then(
         (res) => !cancel && setColors(Array.isArray(res.data) ? res.data : [])
       )
       .catch(() => !cancel && setColors([]));
+
     return () => {
       cancel = true;
     };
   }, []);
 
   const getColorHex = (id) =>
-    colors.find((c) => c.id === id)?.color_hex || '#93c5fd'; // azul claro fallback
+    colors.find((c) => c.id === id)?.color_hex || '#ef3347';
 
-  // fetch logs
   useEffect(() => {
     if (!canSearch) return;
+
     let cancel = false;
+
     const fetchData = async () => {
       setLoading(true);
       setErr('');
+
       try {
         const { data } = await axios.get(
           `${API}/routine_exercise_logs/global`,
@@ -106,7 +134,9 @@ export default function LogsGlobalAlumno() {
             }
           }
         );
+
         if (cancel) return;
+
         setRows(Array.isArray(data?.rows) ? data.rows : []);
         setTotal(Number(data?.total || 0));
         topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -120,15 +150,13 @@ export default function LogsGlobalAlumno() {
         if (!cancel) setLoading(false);
       }
     };
+
     fetchData();
+
     return () => {
       cancel = true;
     };
-  }, [student_id, page, limit, q, dateFrom, dateTo, canSearch]);
-
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const from = total === 0 ? 0 : (page - 1) * limit + 1;
-  const to = Math.min(page * limit, total);
+  }, [student_id, page, limit, q, dateFrom, dateTo, canSearch, refreshTick]);
 
   const clearFilters = () => {
     setQ('');
@@ -150,319 +178,445 @@ export default function LogsGlobalAlumno() {
 
   return (
     <>
-      <NavbarStaff></NavbarStaff>
-      <div className="min-h-screen pt-10 pb-10 bg-[radial-gradient(ellipse_at_top,rgba(2,6,23,1),rgba(2,6,23,1))]">
-        {/* Decor superior */}
-        <div className="relative">
-          <div className="absolute -top-24 right-10 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute -top-10 left-[-40px] w-48 h-48 rounded-full bg-white/10 blur-2xl" />
-        </div>
-        <ParticlesBackground></ParticlesBackground>
+      <NavbarStaff />
 
-        <div ref={topRef} className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
-          {/* Header */}
+      <div className="min-h-screen pt-10 pb-10 bg-[linear-gradient(180deg,#0a0a0b_0%,#111114_55%,#050505_100%)]">
+        <ParticlesBackground />
+
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[-8%] top-[-8%] h-[320px] w-[320px] rounded-full bg-[#d11f2f]/10 blur-3xl" />
+          <div className="absolute bottom-[-10%] right-[-8%] h-[280px] w-[280px] rounded-full bg-[#ef3347]/8 blur-3xl" />
+        </div>
+
+        <div
+          ref={topRef}
+          className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pb-10"
+        >
           <header className="pt-6 sm:pt-8">
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 text-white/90 hover:text-white transition"
+              className="inline-flex items-center gap-2 text-white/85 hover:text-white transition"
             >
-              <FiArrowLeft /> Volver
+              <FiArrowLeft />
+              Volver
             </button>
 
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-[#ef3347]/20 bg-[#ef3347]/10 px-4 py-1 text-[11px] uppercase tracking-[0.24em] text-[#ff98a5]">
+                Seguimiento global
+              </span>
+              <span className="text-[22px] uppercase leading-none text-[#ff5a6f]">
+                Altos Roca
+              </span>
+            </div>
+
+            <h1 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
               Registro global del alumno
             </h1>
-            <div className="mt-1 text-white/80">
+
+            <div className="mt-2 text-white/70 text-sm sm:text-base">
               Alumno ID: <b className="text-white">{student_id || '—'}</b>
             </div>
           </header>
 
-          {/* Filtros sticky (glass) */}
-          <div className="sticky top-0 z-20 mt-5">
-            <div className="backdrop-blur bg-white/25 border border-white/30 shadow-xl rounded-2xl">
-              <div className="p-4 sm:p-5">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  {/* búsqueda */}
-                  <div className="md:col-span-5">
-                    <label className="block text-[11px] font-semibold text-white/90 mb-1">
-                      Buscar (rutina / bloque / ejercicio)
-                    </label>
-                    <div className="relative">
-                      <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" />
-                      <input
-                        value={q}
-                        onChange={(e) => {
-                          setQ(e.target.value);
-                          setPage(1);
-                        }}
-                        placeholder="Ej: Curl, Pecho, Fuerza"
-                        className="w-full rounded-xl pl-10 pr-10 py-2.5 bg-white/90 focus:bg-white text-gray-900 placeholder-gray-400 border border-white/70 focus:ring-2 focus:ring-white/60 outline-none"
-                      />
-                      {q && (
-                        <button
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          onClick={() => {
-                            setQ('');
-                            setPage(1);
-                          }}
-                          aria-label="Limpiar búsqueda"
-                        >
-                          <FiXCircle />
-                        </button>
+          {!canSearch && (
+            <div
+              className={`mt-6 rounded-[26px] ${shellClass} p-6 text-center`}
+            >
+              <p className="text-lg font-semibold text-white">
+                Falta el identificador del alumno
+              </p>
+              <p className="mt-2 text-sm text-white/55">
+                Debes ingresar o navegar con un{' '}
+                <span className="font-semibold text-white">student_id</span>{' '}
+                válido para poder consultar el registro global.
+              </p>
+            </div>
+          )}
+
+          {canSearch && (
+            <>
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <div className={`${softCardClass} p-5`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      Registros
+                    </p>
+                    <FiBarChart2 className="text-[#ff98a5]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black text-white">{total}</p>
+                </div>
+
+                <div className={`${softCardClass} p-5`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      Página actual
+                    </p>
+                    <FiGrid className="text-[#ff98a5]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black text-white">{page}</p>
+                </div>
+
+                <div className={`${softCardClass} p-5`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      Límite
+                    </p>
+                    <FiHash className="text-[#ff98a5]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black text-white">{limit}</p>
+                </div>
+
+                <div className={`${softCardClass} p-5`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      Filtros activos
+                    </p>
+                    <FiLayers className="text-[#ff98a5]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black text-white">
+                    {activeFilters}
+                  </p>
+                </div>
+              </div>
+
+              <div className="sticky top-0 z-20 mt-5">
+                <div className={`rounded-[28px] ${shellClass}`}>
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white/85 mb-4">
+                      <FiSearch className="text-[#ff98a5]" />
+                      Filtros de búsqueda
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div className="md:col-span-5">
+                        <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 mb-2">
+                          Buscar
+                        </label>
+                        <div className="relative">
+                          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35" />
+                          <input
+                            value={q}
+                            onChange={(e) => {
+                              setQ(e.target.value);
+                              setPage(1);
+                            }}
+                            placeholder="Rutina, bloque o ejercicio"
+                            className={`${inputClass} pl-10 pr-10`}
+                          />
+                          {q && (
+                            <button
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/45 hover:text-white"
+                              onClick={() => {
+                                setQ('');
+                                setPage(1);
+                              }}
+                              aria-label="Limpiar búsqueda"
+                              type="button"
+                            >
+                              <FiXCircle />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 mb-2">
+                          Desde
+                        </label>
+                        <div className="relative">
+                          <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35" />
+                          <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => {
+                              setDateFrom(e.target.value);
+                              setPage(1);
+                            }}
+                            className={`${inputClass} pl-10`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 mb-2">
+                          Hasta
+                        </label>
+                        <div className="relative">
+                          <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35" />
+                          <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => {
+                              setDateTo(e.target.value);
+                              setPage(1);
+                            }}
+                            className={`${inputClass} pl-10`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-3 flex flex-col gap-3 md:justify-end">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={setToday}
+                            type="button"
+                            className={`${buttonSoftClass} flex-1`}
+                            title="Filtrar hoy"
+                          >
+                            Hoy
+                          </button>
+
+                          <button
+                            onClick={clearFilters}
+                            type="button"
+                            className={`${buttonSoftClass} flex-1`}
+                            disabled={loading}
+                          >
+                            Limpiar
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-white/60 whitespace-nowrap">
+                            / pág
+                          </label>
+
+                          <select
+                            value={limit}
+                            onChange={(e) => {
+                              setLimit(Number(e.target.value));
+                              setPage(1);
+                            }}
+                            className="rounded-xl px-3 py-3 bg-black/20 text-white border border-white/10 outline-none"
+                          >
+                            <option value={10} className="text-slate-900">
+                              10
+                            </option>
+                            <option value={20} className="text-slate-900">
+                              20
+                            </option>
+                            <option value={50} className="text-slate-900">
+                              50
+                            </option>
+                          </select>
+
+                          <button
+                            onClick={() => setRefreshTick((t) => t + 1)}
+                            type="button"
+                            className={`${buttonSoftClass} px-3`}
+                            title="Refrescar"
+                          >
+                            <FiRotateCw />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 text-[12px] text-white/75">
+                      {loading ? (
+                        'Cargando...'
+                      ) : (
+                        <>
+                          Mostrando <b className="text-white">{from}</b>–
+                          <b className="text-white">{to}</b> de{' '}
+                          <b className="text-white">{total}</b> registros
+                        </>
                       )}
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  {/* fechas */}
-                  <div className="md:col-span-2">
-                    <label className="block text-[11px] font-semibold text-white/90 mb-1">
-                      Desde
-                    </label>
-                    <div className="relative">
-                      <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" />
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => {
-                          setDateFrom(e.target.value);
-                          setPage(1);
-                        }}
-                        className="w-full rounded-xl pl-10 pr-3 py-2.5 bg-white/90 focus:bg-white text-gray-900 border border-white/70 focus:ring-2 focus:ring-white/60 outline-none"
-                      />
-                    </div>
+              <main className="mt-6">
+                {err && (
+                  <div className="mb-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300 shadow">
+                    {err}
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-[11px] font-semibold text-white/90 mb-1">
-                      Hasta
-                    </label>
-                    <div className="relative">
-                      <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" />
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => {
-                          setDateTo(e.target.value);
-                          setPage(1);
-                        }}
-                        className="w-full rounded-xl pl-10 pr-3 py-2.5 bg-white/90 focus:bg-white text-gray-900 border border-white/70 focus:ring-2 focus:ring-white/60 outline-none"
-                      />
-                    </div>
-                  </div>
+                )}
 
-                  {/* acciones */}
-                  <div className="md:col-span-3 flex gap-2 md:justify-end">
-                    <button
-                      onClick={setToday}
-                      className="flex-1 md:flex-none px-3 py-2.5 rounded-xl bg-white/30 hover:bg-white/40 text-white font-semibold text-sm transition"
-                      title="Filtrar hoy"
-                    >
-                      Hoy
-                    </button>
-                    <button
-                      onClick={clearFilters}
-                      className="flex-1 md:flex-none px-3 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-semibold text-sm transition"
-                      disabled={loading}
-                    >
-                      Limpiar
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm text-white/90">/ pág</label>
-                      <select
-                        value={limit}
-                        onChange={(e) => {
-                          setLimit(Number(e.target.value));
-                          setPage(1);
-                        }}
-                        className="rounded-lg px-2 py-2 bg-white/90 text-gray-900 border border-white/70 outline-none"
+                {loading && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-[24px] overflow-hidden ${shellClass}`}
                       >
-                        <option>10</option>
-                        <option>20</option>
-                        <option>50</option>
-                      </select>
+                        <div className="h-10 bg-white/10 animate-pulse" />
+                        <div className="p-4 space-y-3">
+                          <div className="h-4 bg-white/10 animate-pulse rounded" />
+                          <div className="h-4 w-1/2 bg-white/10 animate-pulse rounded" />
+                          <div className="h-20 bg-white/10 animate-pulse rounded-2xl" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!loading && rows.length === 0 && (
+                  <div
+                    className={`rounded-[28px] ${shellClass} p-10 text-center`}
+                  >
+                    <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#ff98a5]">
+                      <FiBarChart2 size={24} />
+                    </div>
+                    <p className="mt-5 text-lg font-semibold text-white">
+                      No hay registros para los filtros aplicados
+                    </p>
+                    <p className="mt-2 text-sm text-white/55">
+                      Ajustá la búsqueda o el rango de fechas para volver a
+                      intentar.
+                    </p>
+                  </div>
+                )}
+
+                {!loading && rows.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AnimatePresence>
+                      {rows.map((r) => {
+                        const color = getColorHex(r?.bloque?.color_id);
+
+                        return (
+                          <motion.article
+                            key={r.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            className="rounded-[24px] border border-white/10 bg-[#0d0d0e]/95 shadow-[0_18px_55px_-28px_rgba(0,0,0,0.6)] overflow-hidden"
+                          >
+                            <div
+                              className="px-4 py-3 text-xs text-white/80 flex items-center justify-between"
+                              style={{
+                                background: `linear-gradient(90deg, ${color}55 0%, rgba(0,0,0,0) 85%)`
+                              }}
+                            >
+                              <div className="truncate">
+                                <span className="font-semibold text-white">
+                                  {r.rutina?.nombre
+                                    ? r.rutina.nombre
+                                    : 'Rutina'}
+                                </span>
+                                <span className="mx-1 text-white/35">·</span>
+                                <span className="tabular-nums text-white/70">
+                                  Fecha de carga: {formatDdMmYyyySmart(r.fecha)}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-white/45">
+                                ID #{r.id}
+                              </span>
+                            </div>
+
+                            <div className="p-4">
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border"
+                                  style={{
+                                    backgroundColor: `${color}20`,
+                                    borderColor: `${color}40`,
+                                    color: '#ffffff'
+                                  }}
+                                >
+                                  <FiGrid className="text-[12px]" />
+                                  {r.bloque?.nombre || 'Bloque'}
+                                </span>
+
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/80">
+                                  <FiActivity className="text-[12px]" />
+                                  {r.ejercicio?.nombre || 'Ejercicio'}
+                                </span>
+
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/80">
+                                  <FiHash className="text-[12px]" />
+                                  Serie {r.serie?.numero_serie ?? '—'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-baseline justify-between gap-4">
+                                <div className="text-3xl font-black tracking-tight text-white">
+                                  {r.peso != null
+                                    ? `${Number(r.peso).toFixed(2)} kg`
+                                    : '— kg'}
+                                </div>
+                                <div className="text-xs text-white/45">
+                                  {fmtDate(r.fecha)}
+                                </div>
+                              </div>
+
+                              {r.observaciones && (
+                                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                                  <p className="text-[11px] uppercase tracking-[0.16em] text-white/40 mb-2">
+                                    Observaciones
+                                  </p>
+                                  <p className="text-sm text-white/68 italic line-clamp-3">
+                                    {r.observaciones}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.article>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {!loading && total > 0 && (
+                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-white/75">
+                      Mostrando <b className="text-white">{from}</b>–
+                      <b className="text-white">{to}</b> de{' '}
+                      <b className="text-white">{total}</b>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
                       <button
-                        onClick={() => setPage((p) => p)}
-                        className="px-3 py-2 rounded-xl bg-white/30 hover:bg-white/40 text-white transition"
-                        title="Refrescar"
+                        className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white disabled:opacity-40"
+                        onClick={() => setPage(1)}
+                        disabled={page <= 1}
+                        type="button"
                       >
-                        <FiRotateCw />
+                        « Primera
+                      </button>
+
+                      <button
+                        className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white disabled:opacity-40"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page <= 1}
+                        type="button"
+                      >
+                        <FiChevronLeft className="inline -mt-0.5" /> Anterior
+                      </button>
+
+                      <div className="text-sm text-white/80 px-2">
+                        Página <b className="text-white">{page}</b> /{' '}
+                        {totalPages}
+                      </div>
+
+                      <button
+                        className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white disabled:opacity-40"
+                        onClick={() =>
+                          setPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={page >= totalPages}
+                        type="button"
+                      >
+                        Siguiente <FiChevronRight className="inline -mt-0.5" />
+                      </button>
+
+                      <button
+                        className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white disabled:opacity-40"
+                        onClick={() => setPage(totalPages)}
+                        disabled={page >= totalPages}
+                        type="button"
+                      >
+                        Última »
                       </button>
                     </div>
                   </div>
-                </div>
-
-                {/* resumen */}
-                <div className="mt-2 text-[12px] text-white/90">
-                  {loading ? (
-                    'Cargando…'
-                  ) : (
-                    <>
-                      Mostrando <b>{from}</b>–<b>{to}</b> de <b>{total}</b>{' '}
-                      registros
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* contenido */}
-          <main className="mt-6">
-            {err && (
-              <div className="mb-4 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 shadow">
-                {err}
-              </div>
-            )}
-
-            {/* skeletons */}
-            {loading && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl overflow-hidden border border-white/30 bg-white/40 backdrop-blur"
-                  >
-                    <div className="h-10 bg-white/50 animate-pulse" />
-                    <div className="p-4 space-y-2">
-                      <div className="h-4 bg-white/60 animate-pulse rounded" />
-                      <div className="h-4 w-1/2 bg-white/60 animate-pulse rounded" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {!loading && rows.length === 0 && (
-              <div className="p-6 rounded-2xl border border-white/40 bg-white/40 backdrop-blur text-white shadow text-center">
-                No hay registros para los filtros aplicados.
-              </div>
-            )}
-
-            {!loading && rows.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {rows.map((r) => {
-                  const color = getColorHex(r?.bloque?.color_id);
-                  return (
-                    <article
-                      key={r.id}
-                      className="rounded-2xl border border-white/40 bg-white/95 shadow-xl overflow-hidden"
-                    >
-                      {/* header rutina con barra de color */}
-                      <div
-                        className="px-4 py-2 text-xs text-gray-700 flex items-center justify-between"
-                        style={{
-                          background: `linear-gradient(90deg, ${color} 0%, rgba(255,255,255,0) 70%)`
-                        }}
-                      >
-                        <div className="truncate">
-                          <span className="font-semibold">
-                            {r.rutina?.nombre ? r.rutina.nombre : 'Rutina'}
-                          </span>
-                          <span className="mx-1 text-gray-500">·</span>
-                          <span className="tabular-nums text-gray-700">
-                            Fecha de carga: {formatDdMmYyyySmart(r.fecha)}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-gray-500">
-                          ID #{r.id}
-                        </span>
-                      </div>
-
-                      {/* body */}
-                      <div className="p-4">
-                        {/* chips breadcrumb */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <span
-                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full"
-                            style={{
-                              backgroundColor: `${color}20`,
-                              color: '#1e40af'
-                            }}
-                          >
-                            <FiGrid className="text-[12px]" />
-                            {r.bloque?.nombre || 'Bloque'}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">
-                            <FiActivity className="text-[12px]" />
-                            {r.ejercicio?.nombre || 'Ejercicio'}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700">
-                            <FiHash className="text-[12px]" />
-                            Serie {r.serie?.numero_serie ?? '—'}
-                          </span>
-                        </div>
-
-                        {/* peso + fecha */}
-                        <div className="flex items-baseline justify-between">
-                          <div className="text-3xl font-black tracking-tight text-gray-900">
-                            {r.peso != null
-                              ? `${Number(r.peso).toFixed(2)} kg`
-                              : '— kg'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {fmtDate(r.fecha)}
-                          </div>
-                        </div>
-
-                        {/* observaciones */}
-                        {r.observaciones && (
-                          <p className="mt-2 text-sm text-gray-600 italic line-clamp-3">
-                            {r.observaciones}
-                          </p>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* paginación */}
-            {!loading && total > 0 && (
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="text-sm text-white/90">
-                  Mostrando <b className="text-white">{from}</b>–
-                  <b className="text-white">{to}</b> de{' '}
-                  <b className="text-white">{total}</b>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-1.5 rounded-xl border border-white/30 bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                    onClick={() => setPage(1)}
-                    disabled={page <= 1}
-                  >
-                    « Primera
-                  </button>
-                  <button
-                    className="px-3 py-1.5 rounded-xl border border-white/30 bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                  >
-                    <FiChevronLeft className="inline -mt-0.5" /> Anterior
-                  </button>
-                  <div className="text-sm text-white/90">
-                    Página <b className="text-white">{page}</b> /{' '}
-                    {Math.max(1, Math.ceil(total / limit))}
-                  </div>
-                  <button
-                    className="px-3 py-1.5 rounded-xl border border-white/30 bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                    onClick={() =>
-                      setPage((p) => Math.min(Math.ceil(total / limit), p + 1))
-                    }
-                    disabled={page >= Math.ceil(total / limit)}
-                  >
-                    Siguiente <FiChevronRight className="inline -mt-0.5" />
-                  </button>
-                  <button
-                    className="px-3 py-1.5 rounded-xl border border-white/30 bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                    onClick={() => setPage(Math.ceil(total / limit))}
-                    disabled={page >= Math.ceil(total / limit)}
-                  >
-                    Última »
-                  </button>
-                </div>
-              </div>
-            )}
-          </main>
+                )}
+              </main>
+            </>
+          )}
         </div>
       </div>
     </>

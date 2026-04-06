@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaTimes, FaPlus } from 'react-icons/fa';
+import {
+  FaTimes,
+  FaPlus,
+  FaDumbbell,
+  FaLayerGroup,
+  FaCalendarAlt,
+  FaClock,
+  FaPalette,
+  FaCopy,
+  FaSave
+} from 'react-icons/fa';
 import clsx from 'clsx';
 import AutocompleteEjercicio from '../../Components/AutocompleteEjercicio';
 import SeriesSelector from '../../Components/SeriesSelector';
@@ -222,14 +232,21 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
       return dayjs.tz(val, TZ).utc().toISOString();
     };
 
+    /* Benjamin Orellana - 06/04/2026 - Validación para enviar student_id solo cuando la rutina se crea sobre un alumno concreto */
+    const hasStudentId =
+      studentId !== undefined &&
+      studentId !== null &&
+      String(studentId).trim() !== '' &&
+      Number(studentId) > 0;
+
+    /* Benjamin Orellana - 06/04/2026 - Payload flexible para soportar rutinas base sin alumno asignado */
     const rutina = {
-      student_id: Number(studentId),
+      ...(hasStudentId ? { student_id: Number(studentId) } : {}),
       instructor_id: Number(userId),
       nombre,
-      // si tus inputs son date-only para "fecha", cambia el segundo parámetro a true
-      fecha: toUtcIso(fecha /* , true */),
-      desde: toUtcIso(desde /* , true si es solo fecha */),
-      hasta: hasta ? toUtcIso(hasta /* , true si es solo fecha */) : null,
+      fecha: toUtcIso(fecha),
+      desde: toUtcIso(desde),
+      hasta: hasta ? toUtcIso(hasta) : null,
       descripcion: '',
       bloques: bloques.map((bloque, bloqueIdx) => ({
         nombre: bloque.nombre,
@@ -279,472 +296,744 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
     });
   };
 
+  /* Benjamin Orellana - 06/04/2026 - Helpers visuales para resolver el color activo del bloque y aplicar acentos con identidad Altos Roca */
+  const getColorSeleccionado = (colorId) =>
+    coloresDisponibles.find((c) => c.id === colorId) || null;
+
+  const getColorHexBloque = (colorId) =>
+    getColorSeleccionado(colorId)?.color_hex || '#dc2626';
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-2">
-      <div
-        ref={modalRef}
-        className="bg-white rounded-3xl w-full max-w-screen-sm max-h-[95vh] overflow-y-auto shadow-2xl p-6 relative"
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+    <>
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md px-2 py-3 sm:px-6 sm:py-6">
+        <div
+          ref={modalRef}
+          className="mx-auto flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#050505] text-white shadow-[0_30px_90px_-28px_rgba(0,0,0,0.75)]"
         >
-          <FaTimes size={20} />
-        </button>
+          <div className="relative border-b border-white/10 bg-gradient-to-r from-[#160707] via-[#090909] to-[#120606] px-5 py-5 sm:px-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.05),transparent_18%)]" />
 
-        <h2 className="text-3xl titulo uppercase font-extrabold mb-4 text-center tracking-tight text-gray-800">
-          Crear Rutina
-        </h2>
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-white"
+              type="button"
+            >
+              <FaTimes size={16} />
+            </button>
 
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
-          Nombre de rutina
-        </label>
-        <input
-          type="text"
-          className="w-full p-3 border border-gray-300 rounded-xl mb-4 text-lg font-medium"
-          placeholder="Nombre de rutina"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
+            <div className="relative z-10 pr-14">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-red-300">
+                <FaDumbbell />
+                Altos Roca
+              </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Fecha
-            </label>
-            <input
-              type="date"
-              className="w-full p-2 border rounded-xl"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-            />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h2 className="text-3xl titulo font-black uppercase tracking-[0.04em] text-white sm:text-4xl">
+                    Crear rutina
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
+                    Organizá bloques, ejercicios y series en un formato más
+                    claro, visual y cómodo para el trabajo diario del staff.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">
+                      Bloques
+                    </p>
+                    <p className="mt-1 text-2xl font-black text-white">
+                      {bloques.length}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">
+                      Ejercicios
+                    </p>
+                    <p className="mt-1 text-2xl font-black text-white">
+                      {bloques.reduce(
+                        (acc, bloque) => acc + (bloque.ejercicios?.length || 0),
+                        0
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 col-span-2 sm:col-span-1">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">
+                      Alumno
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-white/90">
+                      ID #{studentId}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Vigente desde
-            </label>
-            <input
-              type="datetime-local"
-              className="w-full p-2 border rounded-xl"
-              value={desde}
-              onChange={(e) => setDesde(e.target.value)}
-            />
-          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-8">
+            <div className="mb-8 rounded-[28px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_20px_55px_-35px_rgba(239,68,68,0.30)] sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/15 text-red-300">
+                  <FaCalendarAlt />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold uppercase tracking-[0.04em] text-white">
+                    Datos generales de la rutina
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    Definí nombre, fecha y vigencia antes de cargar los bloques.
+                  </p>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Vigente hasta (opcional)
-            </label>
-            <input
-              type="date"
-              className="w-full p-2 border rounded-xl"
-              value={hasta}
-              onChange={(e) => setHasta(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {bloques.map((bloque, bloqueIdx) => (
-          <div
-            key={bloqueIdx}
-            className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-indigo-700">
-                {bloque.nombre}
-              </h3>
-
-              <div className="flex items-center gap-3">
-                {/* Preview del color */}
-                {bloque.color_id && (
-                  <div
-                    className="w-6 h-6 rounded-full border border-gray-300 shadow"
-                    style={{
-                      backgroundColor:
-                        coloresDisponibles.find((c) => c.id === bloque.color_id)
-                          ?.color_hex || 'transparent'
-                    }}
-                    title={
-                      coloresDisponibles.find((c) => c.id === bloque.color_id)
-                        ?.nombre || ''
-                    }
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                <div className="xl:col-span-5">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                    Nombre de rutina
+                  </label>
+                  <input
+                    type="text"
+                    className="h-[56px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 text-base font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                    placeholder="Ej. Fuerza torso - semana 1"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
                   />
-                )}
+                </div>
 
-                {/* Botón seleccionar color */}
-                <button
-                  type="button"
-                  onClick={() => setModalColorIdx(bloqueIdx)}
-                  className="text-sm font-semibold px-4 py-2 rounded-xl bg-gradient-to-r bg-purple-600 text-white shadow-md hover:scale-105 transition-all duration-200"
-                >
-                  Elegir color
-                </button>
+                <div className="xl:col-span-2">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                    Fecha
+                  </label>
+                  <input
+                    type="date"
+                    className="h-[56px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 text-sm font-semibold text-white outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                    value={fecha}
+                    onChange={(e) => setFecha(e.target.value)}
+                  />
+                </div>
+
+                <div className="xl:col-span-3">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                    Vigente desde
+                  </label>
+                  <input
+                    type="datetime-local"
+                    className="h-[56px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 text-sm font-semibold text-white outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                    value={desde}
+                    onChange={(e) => setDesde(e.target.value)}
+                  />
+                </div>
+
+                <div className="xl:col-span-2">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                    Vigente hasta
+                  </label>
+                  <input
+                    type="date"
+                    className="h-[56px] w-full rounded-2xl border border-white/10 bg-[#0d0d0d] px-4 text-sm font-semibold text-white outline-none transition focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                    value={hasta}
+                    onChange={(e) => setHasta(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
-            {bloque.ejercicios.map((ej, ejIdx) => (
-              <div
-                key={ejIdx}
-                className="bg-white border border-gray-300 rounded-xl p-4 mb-4 shadow"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <button
-                    onClick={() => eliminarEjercicio(bloqueIdx, ejIdx)}
-                    className="text-red-500 hover:text-red-700 text-lg font-bold"
-                    title="Eliminar ejercicio"
+            <div className="space-y-6">
+              {bloques.map((bloque, bloqueIdx) => {
+                const colorHex = getColorHexBloque(bloque.color_id);
+                const colorData = getColorSeleccionado(bloque.color_id);
+
+                return (
+                  <div
+                    key={bloqueIdx}
+                    className="overflow-hidden rounded-[30px] border bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-4 sm:p-6"
+                    style={{
+                      borderColor: `${colorHex}55`,
+                      boxShadow: `0 22px 55px -38px ${colorHex}`
+                    }}
                   >
-                    ✖
-                  </button>
-                </div>
+                    <div className="mb-5 flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-lg font-black text-white"
+                          style={{
+                            background: `linear-gradient(135deg, ${colorHex}, #111111)`,
+                            borderColor: `${colorHex}99`
+                          }}
+                        >
+                          {bloqueIdx + 1}
+                        </div>
 
-                {/* <input
-                  type="text"
-                  className="w-full mb-3 p-2 border rounded-md font-semibold"
-                  placeholder="Nombre del ejercicio"
-                  value={ej.nombre}
-                  onChange={(e) =>
-                    actualizarEjercicio(
-                      bloqueIdx,
-                      ejIdx,
-                      'nombre',
-                      e.target.value
-                    )
-                  }
-                /> */}
+                        <div>
+                          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.20em] text-slate-300">
+                            <FaLayerGroup />
+                            Bloque de trabajo
+                          </div>
 
-                <AutocompleteEjercicio
-                  value={ej.nombre}
-                  onTextChange={(texto) => {
-                    // sigue reflejando lo que escribe el usuario
-                    actualizarEjercicio(bloqueIdx, ejIdx, 'nombre', texto);
-                  }}
-                  onSelect={(item) => {
-                    // al seleccionar una opción del catálogo:
-                    actualizarEjercicio(
-                      bloqueIdx,
-                      ejIdx,
-                      'nombre',
-                      item.nombre
-                    );
-                    actualizarEjercicio(
-                      bloqueIdx,
-                      ejIdx,
-                      'catalogo_id',
-                      item.id || null
-                    ); // si agregaste la col
-                    // si querés, podés setear musculo/notas por defecto usando item.musculo / item.tags
-                  }}
-                  placeholder="Escribe para buscar… (pe, bicep, senta...)"
-                  apiUrl="http://localhost:8080/catalogo-ejercicios"
-                  minChars={2}
-                  limit={10}
-                />
+                          <h3 className="text-2xl font-black uppercase tracking-[0.04em] text-white">
+                            {bloque.nombre}
+                          </h3>
 
-                <input
-                  type="text"
-                  className="mt-2 w-full mb-3 p-2 border rounded-md font-semibold"
-                  placeholder="Notas u Obs. del ejercicio"
-                  value={ej.notas}
-                  onChange={(e) =>
-                    actualizarEjercicio(
-                      bloqueIdx,
-                      ejIdx,
-                      'notas',
-                      e.target.value
-                    )
-                  }
-                />
-                <label className="block mb-1 font-semibold ">
-                  Cantidad de series
-                </label>
-                <SeriesSelector
-                  value={ej.seriesCantidad}
-                  min={1}
-                  max={10}
-                  onChange={(nuevo) =>
-                    actualizarEjercicio(
-                      bloqueIdx,
-                      ejIdx,
-                      'seriesCantidad',
-                      nuevo
-                    )
-                  }
-                />
-                {/* Botón original Replicar */}
-                <button
-                  type="button"
-                  className="mb-3 px-3 py-1 mt-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-all text-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    replicarEjercicio(bloqueIdx, ejIdx);
-                  }}
-                >
-                  Replicar
-                </button>
+                          <p className="mt-1 text-sm text-slate-400">
+                            {bloque.ejercicios?.length || 0} ejercicio(s)
+                            cargado(s)
+                            {colorData
+                              ? ` · Color ${colorData.nombre}`
+                              : ' · Sin color asignado'}
+                          </p>
+                        </div>
+                      </div>
 
-                
-                {/* ====== SUGERENCIAS RÁPIDAS ====== */}
-                {(() => {
-                  // Helpers
-                  const toInt = (v) => {
-                    const n = Number(v);
-                    return Number.isFinite(n) ? n : NaN;
-                  };
-                  const isFilled = (n) => Number.isFinite(n) && n > 0;
+                      <div className="flex flex-wrap items-center gap-3">
+                        {bloque.color_id && (
+                          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                            <span
+                              className="h-4 w-4 rounded-full border border-white/30"
+                              style={{ backgroundColor: colorHex }}
+                            />
+                            <span className="text-sm font-semibold text-slate-200">
+                              {colorData?.nombre || 'Color activo'}
+                            </span>
+                          </div>
+                        )}
 
-                  const reps = ej.series.map((s) => toInt(s.repeticiones));
-                  const total = reps.length;
-
-                  // Primer valor válido y cuántas vacías quedan
-                  const firstFilledIdx = reps.findIndex(isFilled);
-                  const firstVal =
-                    firstFilledIdx >= 0 ? reps[firstFilledIdx] : null;
-                  const emptyIdxs = reps
-                    .map((n, i) => (!isFilled(n) ? i : -1))
-                    .filter((i) => i !== -1);
-
-                  // Para progresión aritmética si hay S1 y S2
-                  const secondFilledIdx =
-                    firstFilledIdx >= 0
-                      ? reps.findIndex(
-                          (n, i) => i > firstFilledIdx && isFilled(n)
-                        )
-                      : -1;
-
-                  const canProgress =
-                    firstFilledIdx >= 0 && secondFilledIdx >= 0;
-                  const a = canProgress ? reps[firstFilledIdx] : null;
-                  const b = canProgress ? reps[secondFilledIdx] : null;
-                  const step = canProgress ? a - b : null; // p.ej. 12 -> 8 => step = 4
-
-                  const handleFillEmpties = (val) => {
-                    emptyIdxs.forEach((serieIdx) =>
-                      actualizarSerie(
-                        bloqueIdx,
-                        ejIdx,
-                        serieIdx,
-                        'repeticiones',
-                        val
-                      )
-                    );
-                  };
-
-                  const handleProgression = () => {
-                    if (!canProgress) return;
-                    let prev = b;
-                    for (let i = secondFilledIdx + 1; i < total; i++) {
-                      const next = Math.max(1, prev - step);
-                      actualizarSerie(
-                        bloqueIdx,
-                        ejIdx,
-                        i,
-                        'repeticiones',
-                        next
-                      );
-                      prev = next;
-                    }
-                  };
-
-                  // Etiqueta human-readable para progresión (ej: 12→8→6→4)
-                  const progressionLabel = (() => {
-                    if (!canProgress) return null;
-                    let seq = [a, b];
-                    let prev = b;
-                    for (let i = secondFilledIdx + 1; i < total; i++) {
-                      prev = Math.max(1, prev - step);
-                      seq.push(prev);
-                    }
-                    return seq.join('→');
-                  })();
-
-                  return (
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      {/* 1) Rellenar vacías con primer valor encontrado */}
-                      {isFilled(firstVal) && emptyIdxs.length > 0 && (
                         <button
                           type="button"
-                          className="px-3 py-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-sm"
-                          title="Rellenar series vacías con este valor"
-                          onClick={() => handleFillEmpties(firstVal)}
+                          onClick={() => setModalColorIdx(bloqueIdx)}
+                          className="inline-flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/15 px-4 py-3 text-sm font-bold text-red-200 transition hover:border-red-400/60 hover:bg-red-500/20 hover:text-white"
                         >
-                          {total} × {firstVal}
+                          <FaPalette />
+                          Elegir color
                         </button>
-                      )}
-
-                      {/* 2) Progresión aritmética desde S1 y S2 */}
-                      {canProgress &&
-                        step !== 0 &&
-                        secondFilledIdx < total - 1 && (
-                          <button
-                            type="button"
-                            className="px-3 py-1 rounded-md bg-orange-600 text-white hover:bg-orange-700 text-sm"
-                            title="Completar progresión aritmética"
-                            onClick={handleProgression}
-                          >
-                            Progresión {progressionLabel}
-                          </button>
-                        )}
+                      </div>
                     </div>
-                  );
-                })()}
 
-                {/* ====== TUS INPUTS DE SERIES ====== */}
-                <div className="grid grid-cols-2 gap-2">
-                  {ej.series.map((serie, serieIdx) => (
-                    <React.Fragment key={serieIdx}>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          placeholder={`Reps S${serie.numero_serie}`}
-                          className="p-2 rounded border w-full pr-14"
-                          value={serie.repeticiones}
-                          onChange={(e) =>
-                            actualizarSerie(
-                              bloqueIdx,
-                              ejIdx,
-                              serieIdx,
-                              'repeticiones',
-                              e.target.value
-                            )
-                          }
-                        />
-                        {/* 3) Mini botón para copiar este valor a las vacías */}
-                        {Number(serie.repeticiones) > 0 && (
-                          <button
-                            type="button"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
-                            title="Copiar este valor a las series vacías"
-                            onClick={() => {
-                              const val = Number(serie.repeticiones);
-                              ej.series.forEach((s, idx) => {
-                                const rep = Number(s.repeticiones);
-                                if (!(rep > 0)) {
+                    <div className="space-y-4">
+                      {bloque.ejercicios.map((ej, ejIdx) => (
+                        <div
+                          key={ejIdx}
+                          className="rounded-[28px] border border-white/10 bg-[#0b0b0b] p-4 shadow-[0_18px_45px_-36px_rgba(255,255,255,0.10)] sm:p-5"
+                        >
+                          <div className="mb-4 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.20em] text-slate-300">
+                                <FaDumbbell />
+                                Ejercicio {ejIdx + 1}
+                              </div>
+                              <h4 className="text-lg font-black uppercase tracking-[0.03em] text-white">
+                                Configuración del ejercicio
+                              </h4>
+                              <p className="mt-1 text-sm text-slate-400">
+                                Seleccioná el ejercicio y completá notas,
+                                series, repeticiones, tiempos y kilos.
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() =>
+                                eliminarEjercicio(bloqueIdx, ejIdx)
+                              }
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/20 hover:text-white"
+                              title="Eliminar ejercicio"
+                            >
+                              <FaTimes />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                            <div className="xl:col-span-7">
+                              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                                Buscar ejercicio
+                              </label>
+                              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-2">
+                                <AutocompleteEjercicio
+                                  value={ej.nombre}
+                                  onTextChange={(texto) => {
+                                    actualizarEjercicio(
+                                      bloqueIdx,
+                                      ejIdx,
+                                      'nombre',
+                                      texto
+                                    );
+                                  }}
+                                  onSelect={(item) => {
+                                    actualizarEjercicio(
+                                      bloqueIdx,
+                                      ejIdx,
+                                      'nombre',
+                                      item.nombre
+                                    );
+                                    actualizarEjercicio(
+                                      bloqueIdx,
+                                      ejIdx,
+                                      'catalogo_id',
+                                      item.id || null
+                                    );
+                                  }}
+                                  placeholder="Escribe para buscar... (pecho, bíceps, sentadilla...)"
+                                  apiUrl="http://localhost:8080/catalogo-ejercicios"
+                                  minChars={2}
+                                  limit={10}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="xl:col-span-5">
+                              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                                Cantidad de series
+                              </label>
+                              <div className=" text-black rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                                <SeriesSelector
+                                  value={ej.seriesCantidad}
+                                  min={1}
+                                  max={10}
+                                  onChange={(nuevo) =>
+                                    actualizarEjercicio(
+                                      bloqueIdx,
+                                      ejIdx,
+                                      'seriesCantidad',
+                                      nuevo
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            <div className="xl:col-span-12">
+                              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.20em] text-slate-400">
+                                Notas del ejercicio
+                              </label>
+                              <input
+                                type="text"
+                                className="h-[54px] w-full rounded-2xl border border-white/10 bg-[#101010] px-4 text-sm font-medium text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                                placeholder="Ej. controlá tempo, técnica, pausa o alguna observación"
+                                value={ej.notas}
+                                onChange={(e) =>
+                                  actualizarEjercicio(
+                                    bloqueIdx,
+                                    ejIdx,
+                                    'notas',
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:border-white/20 hover:bg-white/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                replicarEjercicio(bloqueIdx, ejIdx);
+                              }}
+                            >
+                              <FaCopy />
+                              Replicar estructura
+                            </button>
+
+                            {(() => {
+                              const toInt = (v) => {
+                                const n = Number(v);
+                                return Number.isFinite(n) ? n : NaN;
+                              };
+
+                              const isFilled = (n) =>
+                                Number.isFinite(n) && n > 0;
+
+                              const reps = ej.series.map((s) =>
+                                toInt(s.repeticiones)
+                              );
+                              const total = reps.length;
+
+                              const firstFilledIdx = reps.findIndex(isFilled);
+                              const firstVal =
+                                firstFilledIdx >= 0
+                                  ? reps[firstFilledIdx]
+                                  : null;
+
+                              const emptyIdxs = reps
+                                .map((n, i) => (!isFilled(n) ? i : -1))
+                                .filter((i) => i !== -1);
+
+                              const secondFilledIdx =
+                                firstFilledIdx >= 0
+                                  ? reps.findIndex(
+                                      (n, i) =>
+                                        i > firstFilledIdx && isFilled(n)
+                                    )
+                                  : -1;
+
+                              const canProgress =
+                                firstFilledIdx >= 0 && secondFilledIdx >= 0;
+
+                              const a = canProgress
+                                ? reps[firstFilledIdx]
+                                : null;
+                              const b = canProgress
+                                ? reps[secondFilledIdx]
+                                : null;
+                              const step = canProgress ? a - b : null;
+
+                              const handleFillEmpties = (val) => {
+                                emptyIdxs.forEach((serieIdx) =>
                                   actualizarSerie(
                                     bloqueIdx,
                                     ejIdx,
-                                    idx,
+                                    serieIdx,
                                     'repeticiones',
                                     val
+                                  )
+                                );
+                              };
+
+                              const handleProgression = () => {
+                                if (!canProgress) return;
+                                let prev = b;
+                                for (
+                                  let i = secondFilledIdx + 1;
+                                  i < total;
+                                  i++
+                                ) {
+                                  const next = Math.max(1, prev - step);
+                                  actualizarSerie(
+                                    bloqueIdx,
+                                    ejIdx,
+                                    i,
+                                    'repeticiones',
+                                    next
                                   );
+                                  prev = next;
                                 }
-                              });
-                            }}
-                          >
-                            Copiar
-                          </button>
-                        )}
-                      </div>
+                              };
 
-                      <input
-                        type="text"
-                        placeholder="Descanso"
-                        className="p-2 rounded border"
-                        value={serie.descanso}
-                        onChange={(e) =>
-                          actualizarSerie(
-                            bloqueIdx,
-                            ejIdx,
-                            serieIdx,
-                            'descanso',
-                            e.target.value
-                          )
-                        }
-                      />
-                      <input
-                        type="text"
-                        placeholder="Tiempo"
-                        className="p-2 rounded border"
-                        value={serie.tiempo}
-                        onChange={(e) =>
-                          actualizarSerie(
-                            bloqueIdx,
-                            ejIdx,
-                            serieIdx,
-                            'tiempo',
-                            e.target.value
-                          )
-                        }
-                      />
-                      <input
-                        type="number"
-                        placeholder="Kg"
-                        className="p-2 rounded border"
-                        value={serie.kg}
-                        onChange={(e) =>
-                          actualizarSerie(
-                            bloqueIdx,
-                            ejIdx,
-                            serieIdx,
-                            'kg',
-                            e.target.value
-                          )
-                        }
-                      />
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            ))}
+                              const progressionLabel = (() => {
+                                if (!canProgress) return null;
+                                let seq = [a, b];
+                                let prev = b;
+                                for (
+                                  let i = secondFilledIdx + 1;
+                                  i < total;
+                                  i++
+                                ) {
+                                  prev = Math.max(1, prev - step);
+                                  seq.push(prev);
+                                }
+                                return seq.join(' - ');
+                              })();
 
-            <button
-              onClick={() => agregarEjercicio(bloqueIdx)}
-              className="text-green-600 hover:text-green-800 flex items-center gap-2 text-sm font-semibold mt-2"
-            >
-              <FaPlus /> Agregar ejercicio
-            </button>
+                              return (
+                                <>
+                                  {isFilled(firstVal) &&
+                                    emptyIdxs.length > 0 && (
+                                      <button
+                                        type="button"
+                                        className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/20 hover:text-white"
+                                        title="Rellenar series vacías con este valor"
+                                        onClick={() =>
+                                          handleFillEmpties(firstVal)
+                                        }
+                                      >
+                                        Completar vacías con {firstVal}
+                                      </button>
+                                    )}
+
+                                  {canProgress &&
+                                    step !== 0 &&
+                                    secondFilledIdx < total - 1 && (
+                                      <button
+                                        type="button"
+                                        className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-300 transition hover:bg-amber-500/20 hover:text-white"
+                                        title="Completar progresión aritmética"
+                                        onClick={handleProgression}
+                                      >
+                                        Progresión {progressionLabel}
+                                      </button>
+                                    )}
+                                </>
+                              );
+                            })()}
+                          </div>
+
+                          <div className="mt-5">
+                            <div className="mb-3 flex items-center gap-2">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/15 text-red-300">
+                                <FaClock />
+                              </div>
+                              <div>
+                                <h5 className="text-sm font-black uppercase tracking-[0.18em] text-white">
+                                  Series
+                                </h5>
+                                <p className="text-xs text-slate-400">
+                                  Cargá repeticiones, descanso, tiempo y kilos
+                                  por serie.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                              {ej.series.map((serie, serieIdx) => (
+                                <div
+                                  key={serieIdx}
+                                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                                >
+                                  <div className="mb-3 flex items-center justify-between">
+                                    <span className="inline-flex rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.20em] text-red-300">
+                                      Serie {serie.numero_serie}
+                                    </span>
+
+                                    {Number(serie.repeticiones) > 0 && (
+                                      <button
+                                        type="button"
+                                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/10"
+                                        title="Copiar este valor a las series vacías"
+                                        onClick={() => {
+                                          const val = Number(
+                                            serie.repeticiones
+                                          );
+                                          ej.series.forEach((s, idx) => {
+                                            const rep = Number(s.repeticiones);
+                                            if (!(rep > 0)) {
+                                              actualizarSerie(
+                                                bloqueIdx,
+                                                ejIdx,
+                                                idx,
+                                                'repeticiones',
+                                                val
+                                              );
+                                            }
+                                          });
+                                        }}
+                                      >
+                                        Copiar reps
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        Repeticiones
+                                      </label>
+                                      <input
+                                        type="number"
+                                        placeholder="Ej. 12"
+                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-[#101010] px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                                        value={serie.repeticiones}
+                                        onChange={(e) =>
+                                          actualizarSerie(
+                                            bloqueIdx,
+                                            ejIdx,
+                                            serieIdx,
+                                            'repeticiones',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        Descanso
+                                      </label>
+                                      <input
+                                        type="text"
+                                        placeholder="Ej. 60s"
+                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-[#101010] px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                                        value={serie.descanso}
+                                        onChange={(e) =>
+                                          actualizarSerie(
+                                            bloqueIdx,
+                                            ejIdx,
+                                            serieIdx,
+                                            'descanso',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        Tiempo
+                                      </label>
+                                      <input
+                                        type="text"
+                                        placeholder="Ej. 30s"
+                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-[#101010] px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                                        value={serie.tiempo}
+                                        onChange={(e) =>
+                                          actualizarSerie(
+                                            bloqueIdx,
+                                            ejIdx,
+                                            serieIdx,
+                                            'tiempo',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        Kg
+                                      </label>
+                                      <input
+                                        type="number"
+                                        placeholder="Ej. 20"
+                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-[#101010] px-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                                        value={serie.kg}
+                                        onChange={(e) =>
+                                          actualizarSerie(
+                                            bloqueIdx,
+                                            ejIdx,
+                                            serieIdx,
+                                            'kg',
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <button
+                        onClick={() => agregarEjercicio(bloqueIdx)}
+                        type="button"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-[22px] border border-dashed border-red-500/35 bg-red-500/8 px-4 py-4 text-sm font-bold uppercase tracking-[0.18em] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/14 hover:text-white"
+                      >
+                        <FaPlus />
+                        Agregar ejercicio al bloque
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={agregarBloque}
+                type="button"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-[24px] border border-dashed border-white/15 bg-white/[0.04] px-5 py-5 text-sm font-bold uppercase tracking-[0.20em] text-white transition hover:border-red-500/45 hover:bg-red-500/10"
+              >
+                <FaPlus />
+                Agregar nuevo bloque
+              </button>
+            </div>
           </div>
-        ))}
 
-        <button
-          onClick={agregarBloque}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl mb-6 w-full"
-        >
-          + Agregar bloque
-        </button>
+          <div className="border-t border-white/10 bg-[#080808]/95 px-4 py-4 backdrop-blur-md sm:px-8">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
+                  Resumen final
+                </p>
+                <p className="mt-1 text-sm text-slate-300">
+                  {bloques.length} bloque(s) ·{' '}
+                  {bloques.reduce(
+                    (acc, bloque) => acc + (bloque.ejercicios?.length || 0),
+                    0
+                  )}{' '}
+                  ejercicio(s)
+                </p>
+              </div>
 
-        <button
-          onClick={handleCrear}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl w-full"
-        >
-          ✅ Crear Rutina
-        </button>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={onClose}
+                  type="button"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-200 transition hover:bg-white/10"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  onClick={handleCrear}
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-500 px-6 py-3 text-sm font-black uppercase tracking-[0.18em] text-white shadow-[0_16px_35px_-18px_rgba(239,68,68,0.85)] transition hover:scale-[1.02]"
+                >
+                  <FaSave />
+                  Crear rutina
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
       {modalColorIdx !== null && bloques[modalColorIdx] && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full relative shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 px-4 backdrop-blur-md">
+          <div className="relative w-full max-w-3xl rounded-[30px] border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_30px_90px_-28px_rgba(0,0,0,0.85)] sm:p-7">
             <button
               onClick={() => setModalColorIdx(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+              type="button"
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-white"
             >
-              ✕
+              <FaTimes size={14} />
             </button>
-            <h3 className="text-lg font-bold mb-4">Selecciona un color</h3>
-            <div className="flex flex-wrap gap-4 max-h-[400px] overflow-y-auto">
+
+            <div className="mb-5">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.20em] text-red-300">
+                <FaPalette />
+                Paleta del bloque
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-[0.04em] text-white">
+                Seleccioná un color
+              </h3>
+              <p className="mt-1 text-sm text-slate-400">
+                El color ayuda a identificar rápidamente cada bloque dentro de
+                la rutina.
+              </p>
+            </div>
+
+            <div className="grid max-h-[430px] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
               {coloresDisponibles.map((col) => {
                 const seleccionado =
                   bloques[modalColorIdx]?.color_id === col.id;
+
                 return (
                   <button
                     key={col.id}
+                    type="button"
                     onClick={() => {
                       handleBloqueChange(modalColorIdx, 'color_id', col.id);
                       setModalColorIdx(null);
                     }}
-                    className={`flex-1 min-w-[100px] p-4 rounded-xl border-4 ${
+                    className={clsx(
+                      'rounded-[24px] border p-4 text-left transition duration-200',
                       seleccionado
-                        ? 'border-purple-500 ring-2 ring-purple-300 scale-105'
-                        : 'border-transparent hover:scale-105'
-                    }`}
+                        ? 'scale-[1.02] border-white/50 ring-2 ring-white/20'
+                        : 'border-white/10 hover:scale-[1.01] hover:border-white/25'
+                    )}
                     style={{
-                      backgroundColor: col.color_hex,
-                      color: 'white',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                      background: `linear-gradient(135deg, ${col.color_hex}, #111111)`,
+                      boxShadow: seleccionado
+                        ? `0 20px 45px -28px ${col.color_hex}`
+                        : 'none'
                     }}
                     title={col.nombre}
                   >
-                    <div className="font-bold text-sm">{col.nombre}</div>
-                    <div className="text-xs">{col.descripcion}</div>
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="text-sm font-black uppercase tracking-[0.06em] text-white">
+                        {col.nombre}
+                      </span>
+                      <span className="h-5 w-5 rounded-full border border-white/40 bg-white/20" />
+                    </div>
+
+                    <div className="text-xs font-medium leading-5 text-white/85">
+                      {col.descripcion || 'Color de bloque'}
+                    </div>
                   </button>
                 );
               })}
@@ -752,7 +1041,7 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

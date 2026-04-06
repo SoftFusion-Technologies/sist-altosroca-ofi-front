@@ -50,18 +50,18 @@ function ChipsInput({
           <Icon className="h-4 w-4" /> {label}
         </span>
       </label>
-      <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-indigo-500/50">
+      <div className="rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-red-500/50">
         <div className="flex flex-wrap gap-2">
           {value.map((chip) => (
             <button
               key={chip}
               type="button"
               onClick={() => removeChip(chip)}
-              className="group inline-flex items-center gap-1 rounded-full bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/25 px-2.5 py-1 text-xs"
+              className="group inline-flex items-center gap-1 rounded-full bg-red-500/15 text-red-200 hover:bg-red-500/25 px-2.5 py-1 text-xs"
               title="Quitar"
             >
               <span>{chip}</span>
-              <span className="rounded-full bg-indigo-400/20 p-0.5 group-hover:bg-indigo-400/30">
+              <span className="rounded-full bg-red-400/20 p-0.5 group-hover:bg-red-400/30">
                 ×
               </span>
             </button>
@@ -117,7 +117,7 @@ function TextInput({ id, ...props }) {
         'w-full rounded-2xl border border-white/10 bg-slate-900/70',
         'backdrop-blur px-3 py-2 ring-1 ring-white/10',
         'placeholder-slate-500 text-slate-100',
-        'focus:outline-none focus:ring-2 focus:ring-indigo-500/50'
+        'focus:outline-none focus:ring-2 focus:ring-red-500/50'
       ].join(' ')}
     />
   );
@@ -146,7 +146,7 @@ function SelectMusculo({ id, value, onChange, options = [] }) {
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+      className="w-full rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur px-3 py-2 ring-1 ring-white/10 text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500/50"
     >
       <option value="">Seleccioná un grupo</option>
       {list.map((opt) => (
@@ -269,8 +269,8 @@ export default function EjercicioModal({ onClose, onSave, editData }) {
             {/* Header */}
             <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 grid place-items-center rounded-xl bg-indigo-500/20 ring-1 ring-indigo-400/30">
-                  <IconDumbbell className="h-4 w-4 text-indigo-300" />
+                <div className="h-8 w-8 grid place-items-center rounded-xl bg-red-500/20 ring-1 ring-red-400/30">
+                  <IconDumbbell className="h-4 w-4 text-red-300" />
                 </div>
                 <div>
                   <h2 className="text-lg md:text-xl font-semibold text-slate-100 tracking-tight">
@@ -393,7 +393,7 @@ export default function EjercicioModal({ onClose, onSave, editData }) {
                   <button
                     type="submit"
                     disabled={!canSubmit || saving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white enabled:hover:bg-indigo-500 disabled:opacity-60"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white enabled:hover:bg-red-500 disabled:opacity-60"
                   >
                     <IconSave className="h-4 w-4" />
                     {saving ? 'Guardando...' : 'Guardar'}
