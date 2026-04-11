@@ -4,6 +4,7 @@ import Horarios from "../Pages/Public/Horarios.jsx";
 import Socios from "../Pages/Public/Socios.jsx";
 import Espacios from "../Pages/Public/Espacios.jsx";
 import Suplementos from "../Pages/Public/Suplementos.jsx";
+import TurnosPage from "../Pages/TurnosPage.jsx";
 
 const routes = [
   {
@@ -41,7 +42,14 @@ const routes = [
     element: <Suplementos />,
     name: 'Suplementos',
     showInNav: true
+  },
+  {
+    path: '/turnos',
+    element: <TurnosPage />,
+    name: 'Turnos',
+    showInNav: true
   }
+
 ];
 
 export default routes;

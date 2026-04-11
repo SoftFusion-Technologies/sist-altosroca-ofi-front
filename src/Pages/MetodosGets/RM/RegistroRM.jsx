@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -8,7 +8,9 @@ import {
   FiLoader,
   FiActivity,
   FiTarget,
-  FiMessageSquare
+  FiMessageSquare,
+  FiCalendar,
+  FiTrendingUp
 } from 'react-icons/fi';
 import ModalSuccess from '../../../components/Forms/ModalSuccess';
 import ModalError from '../../../components/Forms/ModalError';
@@ -16,18 +18,21 @@ import ModalError from '../../../components/Forms/ModalError';
 /*
  * Programador: Benjamin Orellana
  * Fecha Creación: 06/04/2026
- * Versión: 2.0
+ * Versión: 2.1
  *
  * Descripción:
- * Formulario de registro de RM rediseñado con identidad visual Altos Roca.
- * Se corrige la carga de ejercicios, se mejora la jerarquía visual y se
- * mantiene la lógica de guardado existente.
+ * Formulario de registro de RM adaptado al backend actual del módulo.
+ * Se agrega fecha, preview de RM estimada, manejo de validaciones nuevas
+ * y feedback más preciso sin alterar la estética general.
  *
  * Tema: Registro de RM
  * Capa: Frontend
  */
 
-/* Benjamin Orellana - 06/04/2026 - Helpers visuales para alinear el formulario RM con la estética Altos Roca */
+/* Benjamin Orellana - 2026/04/11 - URL base del backend para el módulo RM */
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+/* Benjamin Orellana - 2026/04/11 - Helpers visuales para alinear el formulario RM con la estética Altos Roca */
 const inputClass =
   'w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 transition focus:border-[#ef3347]/25 focus:ring-2 focus:ring-[#ef3347]/15';
 
@@ -37,9 +42,77 @@ const labelClass =
 const sectionCardClass =
   'rounded-[24px] border border-white/10 bg-white/[0.04] backdrop-blur-xl p-4';
 
+/* Benjamin Orellana - 2026/04/11 - Lista local de respaldo para ejercicios cuando la API no responde */
+const ejerciciosFallback = [
+  'Sentadilla',
+  'Peso Muerto',
+  'Press Banca',
+  'Remo con Barra',
+  'Press Militar',
+  'Dominadas lastradas'
+];
+
+/* Benjamin Orellana - 2026/04/11 - Formatea la fecha actual en YYYY-MM-DD para el input del formulario */
+const getTodayInputValue = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Convierte valores numéricos del formulario a número seguro */
+const toNumberOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Calcula la RM estimada en frontend para preview inmediato */
+const calcularRmEstimada = (peso, reps) => {
+  const pesoNum = toNumberOrNull(peso);
+  const repsNum = parseInt(reps || 0, 10);
+
+  if (!pesoNum || !Number.isFinite(repsNum) || repsNum <= 0) return null;
+  if (repsNum === 1) return Math.round((pesoNum + Number.EPSILON) * 100) / 100;
+
+  return (
+    Math.round((pesoNum * (1 + repsNum / 30) + Number.EPSILON) * 100) / 100
+  );
+};
+
+/* Benjamin Orellana - 2026/04/11 - Formatea kilos para la preview del formulario */
+const formatKg = (value) => {
+  const n = toNumberOrNull(value);
+  if (n === null) return '—';
+
+  return `${n.toLocaleString('es-AR', {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  })} kg`;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Normaliza respuesta de ejercicios cuando la API devuelve objetos o strings */
+const normalizarEjercicios = (data) => {
+  if (!Array.isArray(data)) return ejerciciosFallback;
+
+  const mapped = data
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      if (item?.nombre) return item.nombre;
+      if (item?.ejercicio) return item.ejercicio;
+      if (item?.name) return item.name;
+      return null;
+    })
+    .filter(Boolean);
+
+  return mapped.length ? mapped : ejerciciosFallback;
+};
+
 export default function RegistroRM({ studentId, onClose }) {
   const [ejercicios, setEjercicios] = useState([]);
   const [error, setError] = useState(null);
+  const [errorMotivos, setErrorMotivos] = useState([]);
   const [successMsg, setSuccessMsg] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingEjercicios, setLoadingEjercicios] = useState(true);
@@ -51,22 +124,13 @@ export default function RegistroRM({ studentId, onClose }) {
       try {
         setLoadingEjercicios(true);
 
-        const res = await axios.get('http://localhost:8080/api/ejercicios');
-        const data = Array.isArray(res.data) ? res.data : [];
-
-        setEjercicios(data);
+        const res = await axios.get(`${BASE_URL}/catalogo-ejercicios`);
+        setEjercicios(normalizarEjercicios(res.data));
       } catch (err) {
         console.warn(
           'No se pudo cargar la lista de ejercicios. Se utilizará una lista por defecto.'
         );
-        setEjercicios([
-          'Sentadilla',
-          'Peso Muerto',
-          'Press Banca',
-          'Remo con Barra',
-          'Press Militar',
-          'Dominadas lastradas'
-        ]);
+        setEjercicios(ejerciciosFallback);
       } finally {
         setLoadingEjercicios(false);
       }
@@ -80,29 +144,39 @@ export default function RegistroRM({ studentId, onClose }) {
       ejercicio: '',
       peso_levantado: '',
       repeticiones: '',
+      fecha: getTodayInputValue(),
       comentario: ''
     },
     validationSchema: Yup.object({
       ejercicio: Yup.string().required('Seleccione un ejercicio.'),
       peso_levantado: Yup.number()
-        .min(1, 'Debe ser mayor a 0')
+        .typeError('Ingrese un número válido.')
+        .min(0.01, 'Debe ser mayor a 0')
         .required('Ingrese un peso.'),
       repeticiones: Yup.number()
+        .typeError('Ingrese un número válido.')
         .integer('Debe ser un número entero.')
         .min(1, 'Debe ser mayor a 0')
-        .required('Ingrese repeticiones.')
+        .required('Ingrese repeticiones.'),
+      fecha: Yup.string().required('Seleccione una fecha.')
     }),
     onSubmit: async (values) => {
       setError(null);
+      setErrorMotivos([]);
       setSuccessMsg(null);
       setLoading(true);
 
       try {
-        const res = await axios.post('http://localhost:8080/student-rm', {
+        const payload = {
           student_id: studentId,
-          ...values,
+          ejercicio: values.ejercicio,
+          peso_levantado: Number(values.peso_levantado),
+          repeticiones: Number(values.repeticiones),
+          fecha: values.fecha,
           comentario: values.comentario.trim() || null
-        });
+        };
+
+        const res = await axios.post(`${BASE_URL}/student-rm`, payload);
 
         if (res.status !== 200) {
           throw new Error('Error al registrar RM');
@@ -111,7 +185,15 @@ export default function RegistroRM({ studentId, onClose }) {
         setSuccessMsg('RM guardado correctamente');
         setShowModal(true);
 
-        formik.resetForm();
+        formik.resetForm({
+          values: {
+            ejercicio: '',
+            peso_levantado: '',
+            repeticiones: '',
+            fecha: getTodayInputValue(),
+            comentario: ''
+          }
+        });
 
         setTimeout(() => {
           setShowModal(false);
@@ -120,7 +202,13 @@ export default function RegistroRM({ studentId, onClose }) {
       } catch (err) {
         const mensaje =
           err.response?.data?.mensajeError || 'Error al guardar el registro RM';
+
+        const motivos = Array.isArray(err.response?.data?.motivos)
+          ? err.response.data.motivos
+          : [];
+
         setError(mensaje);
+        setErrorMotivos(motivos);
         setErrorModal(true);
       } finally {
         setLoading(false);
@@ -128,28 +216,18 @@ export default function RegistroRM({ studentId, onClose }) {
     }
   });
 
+  /* Benjamin Orellana - 2026/04/11 - Preview memoizada de RM estimada para mostrar feedback inmediato al usuario */
+  const rmPreview = useMemo(
+    () =>
+      calcularRmEstimada(
+        formik.values.peso_levantado,
+        formik.values.repeticiones
+      ),
+    [formik.values.peso_levantado, formik.values.repeticiones]
+  );
+
   return (
     <div className="space-y-5">
-      <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(145deg,rgba(239,51,71,0.12)_0%,rgba(255,255,255,0.025)_46%,rgba(0,0,0,0.45)_100%)] p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-[#ef3347]/20 bg-[#ef3347]/10 px-4 py-1 text-[11px] uppercase tracking-[0.24em] text-[#ff98a5]">
-            Fuerza máxima
-          </span>
-
-          <span className="text-[22px] uppercase leading-none text-[#ff5a6f]">
-            Altos Roca
-          </span>
-        </div>
-
-        <h3 className="mt-4 text-2xl font-black uppercase tracking-tight text-white">
-          Registrar RM
-        </h3>
-
-        <p className="mt-2 text-sm leading-6 text-white/60">
-          Cargá una nueva marca máxima del alumno con una experiencia más clara,
-          moderna y alineada al ecosistema Altos Roca.
-        </p>
-      </div>
 
       <form onSubmit={formik.handleSubmit} className="space-y-5">
         <div className={sectionCardClass}>
@@ -172,6 +250,7 @@ export default function RegistroRM({ studentId, onClose }) {
                 ? 'Cargando ejercicios...'
                 : 'Seleccione un ejercicio'}
             </option>
+
             {ejercicios.map((e, i) => (
               <option key={i} value={e} className="text-slate-900">
                 {e}
@@ -186,7 +265,7 @@ export default function RegistroRM({ studentId, onClose }) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className={sectionCardClass}>
             <label htmlFor="peso_levantado" className={labelClass}>
               <FiTarget />
@@ -197,6 +276,7 @@ export default function RegistroRM({ studentId, onClose }) {
               type="number"
               name="peso_levantado"
               step="0.01"
+              min="0"
               value={formik.values.peso_levantado}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -237,6 +317,41 @@ export default function RegistroRM({ studentId, onClose }) {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.2fr_0.8fr]">
+          <div className={sectionCardClass}>
+            <label htmlFor="fecha" className={labelClass}>
+              <FiCalendar />
+              Fecha
+            </label>
+
+            <input
+              type="date"
+              name="fecha"
+              value={formik.values.fecha}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={inputClass}
+            />
+
+            {formik.touched.fecha && formik.errors.fecha && (
+              <p className="mt-2 text-sm text-red-300">{formik.errors.fecha}</p>
+            )}
+          </div>
+
+          <div className={sectionCardClass}>
+            <label className={labelClass}>
+              <FiTrendingUp />
+              RM estimada
+            </label>
+
+            <div className="flex h-[50px] items-center rounded-2xl border border-white/10 bg-black/20 px-4">
+              <span className="text-base font-bold text-white">
+                {formatKg(rmPreview)}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className={sectionCardClass}>
           <label htmlFor="comentario" className={labelClass}>
             <FiMessageSquare />
@@ -248,15 +363,33 @@ export default function RegistroRM({ studentId, onClose }) {
             rows={4}
             value={formik.values.comentario}
             onChange={formik.handleChange}
-            placeholder="Observaciones del intento, sensaciones, técnica o contexto."
+            onBlur={formik.handleBlur}
+            placeholder="Observaciones del intento."
             className={`${inputClass} resize-none`}
           />
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-            <FiAlertCircle className="text-lg" />
-            {error}
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle className="mt-0.5 text-lg shrink-0" />
+              <div className="min-w-0">
+                <p>{error}</p>
+
+                {errorMotivos.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {errorMotivos.map((motivo, index) => (
+                      <p
+                        key={`${motivo}-${index}`}
+                        className="text-xs text-red-200/90"
+                      >
+                        {motivo}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -267,7 +400,7 @@ export default function RegistroRM({ studentId, onClose }) {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="submit"
             disabled={loading || loadingEjercicios}

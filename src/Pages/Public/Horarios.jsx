@@ -43,7 +43,7 @@ const Horarios = () => {
     }
   ];
 
-  const address = 'Av. Peru y Sarmiento, Tafi Viejo, Tucuman, Argentina';
+  const address = 'Altos Roca Gimnasio';
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     address
   )}`;

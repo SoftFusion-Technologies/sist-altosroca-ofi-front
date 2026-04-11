@@ -20,18 +20,21 @@ import ButtonBack from '../../../components/ButtonBack';
 /*
  * Programador: Benjamin Orellana
  * Fecha Creación: 06/04/2026
- * Versión: 2.0
+ * Versión: 2.1
  *
  * Descripción:
  * Listado de registros de RM adaptado visualmente a Altos Roca,
- * con mejor jerarquía visual, KPIs superiores y modal de alta
- * más consistente con la identidad del sistema.
+ * consumiendo métricas del backend sin alterar la estructura general
+ * del módulo ni recargar innecesariamente el contenido visual.
  *
  * Tema: Registro de RM
  * Capa: Frontend
  */
 
-/* Benjamin Orellana - 06/04/2026 - Helpers visuales para unificar la estética Altos Roca del módulo RM */
+/* Benjamin Orellana - 2026/04/11 - URL base del backend para consumir endpoints del módulo RM */
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+/* Benjamin Orellana - 2026/04/11 - Helpers visuales para unificar la estética Altos Roca del módulo RM */
 const shellClass =
   'border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-[0_18px_55px_-28px_rgba(0,0,0,0.48)]';
 
@@ -41,13 +44,51 @@ const statCardClass =
 const primaryButtonClass =
   'inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-4 sm:px-5 py-3 text-sm font-semibold text-white transition hover:scale-[1.01] shadow-[0_16px_35px_-18px_rgba(239,68,68,0.85)]';
 
-/* Benjamin Orellana - 09/04/2026 - Ajustes responsive del layout principal, KPIs y modal de alta para mejorar experiencia mobile y tablet */
+/* Benjamin Orellana - 2026/04/11 - Normaliza números del backend para evitar métricas vacías o inconsistentes */
+const toNumberOrNull = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Formatea kilos para los KPIs del módulo RM */
+const formatKg = (value) => {
+  const n = toNumberOrNull(value);
+  if (n === null) return '—';
+  return `${n.toLocaleString('es-AR', {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  })} kg`;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Devuelve la fecha más útil para ordenar registros del módulo RM */
+const getRegistroDate = (registro) =>
+  registro?.fecha || registro?.created_at || registro?.updated_at || null;
+
+/* Benjamin Orellana - 2026/04/11 - Obtiene el mejor valor disponible de un registro RM para fallback visual */
+const getRegistroRMValue = (registro) => {
+  const candidatos = [
+    registro?.rm_estimada,
+    registro?.rm,
+    registro?.valor_rm,
+    registro?.kg,
+    registro?.peso,
+    registro?.peso_levantado
+  ]
+    .map(toNumberOrNull)
+    .filter((item) => item !== null && item > 0);
+
+  return candidatos.length ? Math.max(...candidatos) : null;
+};
+
+/* Benjamin Orellana - 2026/04/11 - Componente padre del módulo RM con carga de listado y dashboard */
 export default function RMList({ studentId }) {
   const [rms, setRms] = useState([]);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  /* Benjamin Orellana - 2026/04/11 - Carga el listado de registros y el dashboard resumido del alumno */
   const fetchRMs = async () => {
     if (!studentId) {
       setError('No se recibió el ID del alumno');
@@ -57,10 +98,40 @@ export default function RMList({ studentId }) {
 
     try {
       setLoading(true);
-      const { data } = await axios.get(
-        `http://localhost:8080/student-rm?student_id=${studentId}`
-      );
-      setRms(Array.isArray(data) ? data : []);
+
+      const [listadoResult, dashboardResult] = await Promise.allSettled([
+        axios.get(`${BASE_URL}/student-rm`, {
+          params: {
+            student_id: studentId,
+            limit: 300
+          }
+        }),
+        axios.get(`${BASE_URL}/student-rm/dashboard`, {
+          params: {
+            student_id: studentId
+          }
+        })
+      ]);
+
+      if (listadoResult.status !== 'fulfilled') {
+        throw listadoResult.reason;
+      }
+
+      const listadoData = listadoResult.value?.data;
+      const registros = Array.isArray(listadoData)
+        ? listadoData
+        : Array.isArray(listadoData?.registros)
+          ? listadoData.registros
+          : [];
+
+      setRms(registros);
+
+      if (dashboardResult.status === 'fulfilled') {
+        setDashboard(dashboardResult.value?.data || null);
+      } else {
+        setDashboard(null);
+      }
+
       setError(null);
     } catch (err) {
       setError('Error al cargar los registros de RM');
@@ -79,47 +150,93 @@ export default function RMList({ studentId }) {
     if (reload) fetchRMs();
   };
 
-  /* Benjamin Orellana - 06/04/2026 - Agrupación memoizada de registros RM por ejercicio para mejorar orden y lectura */
-  const groupedRMs = useMemo(
-    () =>
-      Object.entries(
-        rms.reduce((acc, rm) => {
-          const key = rm.ejercicio;
-          if (!acc[key]) acc[key] = [];
-          acc[key].push(rm);
-          return acc;
-        }, {})
-      ).sort((a, b) => b[1].length - a[1].length),
-    [rms]
-  );
+  /* Benjamin Orellana - 2026/04/11 - Indexa métricas del dashboard por ejercicio para reutilizarlas en la grilla */
+  const dashboardByEjercicio = useMemo(() => {
+    const source = Array.isArray(dashboard?.ejercicios)
+      ? dashboard.ejercicios
+      : [];
 
-  /* Benjamin Orellana - 06/04/2026 - KPIs visuales superiores para resumir la actividad del alumno en el módulo RM */
-  const totalRegistros = rms.length;
-  const totalEjercicios = groupedRMs.length;
+    return source.reduce((acc, item) => {
+      const key = item?.ejercicio;
+      if (key) acc[key] = item;
+      return acc;
+    }, {});
+  }, [dashboard]);
 
+  /* Benjamin Orellana - 2026/04/11 - Agrupa registros por ejercicio y prioriza los ejercicios con mejor resumen */
+  const groupedRMs = useMemo(() => {
+    const grouped = Object.entries(
+      rms.reduce((acc, rm) => {
+        const key = rm.ejercicio;
+        if (!key) return acc;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(rm);
+        return acc;
+      }, {})
+    );
+
+    return grouped.sort((a, b) => {
+      const aDashboard = dashboardByEjercicio[a[0]];
+      const bDashboard = dashboardByEjercicio[b[0]];
+
+      const aBest = toNumberOrNull(aDashboard?.resumen?.mejor_rm) ?? 0;
+      const bBest = toNumberOrNull(bDashboard?.resumen?.mejor_rm) ?? 0;
+
+      if (bBest !== aBest) return bBest - aBest;
+
+      return b[1].length - a[1].length;
+    });
+  }, [rms, dashboardByEjercicio]);
+
+  /* Benjamin Orellana - 2026/04/11 - Calcula el último registro visible para la tarjeta de actividad reciente */
   const ultimoRegistro = useMemo(() => {
     if (!rms.length) return null;
 
     const ordenados = [...rms].sort((a, b) => {
-      const fa = new Date(a.created_at || a.fecha || 0).getTime();
-      const fb = new Date(b.created_at || b.fecha || 0).getTime();
+      const fa = new Date(getRegistroDate(a) || 0).getTime();
+      const fb = new Date(getRegistroDate(b) || 0).getTime();
       return fb - fa;
     });
 
     return ordenados[0] || null;
   }, [rms]);
 
+  /* Benjamin Orellana - 2026/04/11 - KPIs superiores con prioridad al dashboard y fallback al listado */
+  const totalRegistros =
+    dashboard?.resumen_general?.total_registros ?? rms.length;
+
+  const totalEjercicios =
+    dashboard?.resumen_general?.total_ejercicios ?? groupedRMs.length;
+
+  const totalPRs = dashboard?.resumen_general?.total_prs ?? 0;
+
   const mejorMarcaTexto = useMemo(() => {
+    const mejorGlobal = toNumberOrNull(
+      dashboard?.resumen_general?.mejor_rm_general
+    );
+
+    if (mejorGlobal !== null) return formatKg(mejorGlobal);
+
     if (!rms.length) return '—';
 
     const candidatos = rms
-      .map((rm) => Number(rm.rm || rm.valor_rm || rm.kg || rm.peso || 0))
+      .map(getRegistroRMValue)
       .filter((n) => Number.isFinite(n) && n > 0);
 
     if (!candidatos.length) return '—';
 
-    return `${Math.max(...candidatos)} kg`;
-  }, [rms]);
+    return formatKg(Math.max(...candidatos));
+  }, [dashboard, rms]);
+
+  const ultimoRegistroFechaTexto = useMemo(() => {
+    const rawDate = getRegistroDate(ultimoRegistro);
+    if (!rawDate) return 'Sin fecha';
+
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+    return date.toLocaleDateString('es-AR');
+  }, [ultimoRegistro]);
 
   return (
     <>
@@ -159,9 +276,7 @@ export default function RMList({ studentId }) {
                   </h1>
 
                   <p className="mt-3 max-w-3xl text-sm leading-6 text-white/60 md:text-base">
-                    Visualizá y gestioná las marcas máximas del alumno con una
-                    lectura más clara, moderna y pensada para el seguimiento de
-                    fuerza dentro del ecosistema Altos Roca.
+                    Seguimiento de fuerza del alumno.
                   </p>
                 </div>
 
@@ -182,7 +297,7 @@ export default function RMList({ studentId }) {
                 <div className={statCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-white/45">
-                      Registros totales
+                      Registros
                     </p>
                     <FiBarChart2 className="shrink-0 text-[#ff98a5]" />
                   </div>
@@ -206,31 +321,29 @@ export default function RMList({ studentId }) {
                 <div className={statCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-white/45">
-                      Mejor marca
+                      PRs
                     </p>
                     <FiTarget className="shrink-0 text-[#ff98a5]" />
                   </div>
-                  <p className="mt-3 break-words text-2xl sm:text-3xl font-black text-white">
-                    {mejorMarcaTexto}
+                  <p className="mt-3 text-2xl sm:text-3xl font-black text-white">
+                    {totalPRs}
                   </p>
                 </div>
 
                 <div className={statCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-white/45">
-                      Último registro
+                      Mejor RM
                     </p>
                     <FiBarChart2 className="shrink-0 text-[#ff98a5]" />
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm sm:text-[15px] font-semibold text-white">
-                    {ultimoRegistro?.ejercicio || '—'}
+                    {mejorMarcaTexto}
                   </p>
                   <p className="mt-1 text-xs text-white/55">
-                    {ultimoRegistro?.created_at
-                      ? new Date(ultimoRegistro.created_at).toLocaleDateString(
-                          'es-AR'
-                        )
-                      : 'Sin fecha'}
+                    {ultimoRegistro?.ejercicio || '—'}
+                    {ultimoRegistro?.ejercicio ? ' · ' : ''}
+                    {ultimoRegistroFechaTexto}
                   </p>
                 </div>
               </div>
@@ -259,8 +372,7 @@ export default function RMList({ studentId }) {
                       No hay registros de RM
                     </p>
                     <p className="mt-2 px-4 text-sm text-white/55">
-                      Creá el primero para comenzar a seguir la evolución de
-                      fuerza del alumno.
+                      Creá el primero.
                     </p>
                   </div>
                 ) : (
@@ -271,6 +383,17 @@ export default function RMList({ studentId }) {
                         ejercicio={ejercicio}
                         registros={registros}
                         studentId={studentId}
+                        resumen={
+                          dashboardByEjercicio[ejercicio]?.resumen || null
+                        }
+                        mejorRegistro={
+                          dashboardByEjercicio[ejercicio]?.mejor_registro ||
+                          null
+                        }
+                        ultimoRegistro={
+                          dashboardByEjercicio[ejercicio]?.ultimo_registro ||
+                          null
+                        }
                       />
                     ))}
                   </div>
@@ -321,8 +444,7 @@ export default function RMList({ studentId }) {
                             </Dialog.Title>
 
                             <p className="mt-2 pr-6 text-sm text-white/60">
-                              Registrá una nueva marca máxima para continuar el
-                              seguimiento de evolución del alumno.
+                              Nueva marca del alumno.
                             </p>
                           </div>
 

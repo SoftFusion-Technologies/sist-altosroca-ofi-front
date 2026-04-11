@@ -1,150 +1,236 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { GiWeightLiftingUp, GiStrong, GiMuscleUp } from 'react-icons/gi';
 import { MdOutlineFitnessCenter } from 'react-icons/md';
-import { FiTrendingUp, FiBarChart2, FiCalendar } from 'react-icons/fi';
+import {
+  FiTrendingUp,
+  FiTrendingDown,
+  FiBarChart2,
+  FiCalendar
+} from 'react-icons/fi';
 import HistorialRMModal from './HistorialRMModal';
 
 /*
  * Programador: Benjamin Orellana
  * Fecha Creación: 06/04/2026
- * Versión: 2.0
+ * Versión: 2.1
  *
  * Descripción:
- * Tarjeta de agrupación de registros RM por ejercicio, rediseñada para
- * Altos Roca con mejor jerarquía visual, badges más claros y acciones
- * más consistentes para historial y lectura de progreso.
+ * Tarjeta de agrupación de registros RM por ejercicio, adaptada al
+ * nuevo backend del módulo para mostrar métricas reales sin alterar
+ * la estética general del diseño.
  *
  * Tema: Card de RM por ejercicio
  * Capa: Frontend
  */
 
-const getIcon = (ejercicio) => {
+/* Benjamin Orellana - 2026/04/11 - URL base del backend para consumo del historial de RM */
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+/* Benjamin Orellana - 2026/04/11 - Íconos por ejercicio para mantener identidad visual del módulo */
+const getIcon = (ejercicio = '') => {
   const e = ejercicio.toLowerCase();
-  if (e.includes('press'))
+
+  if (e.includes('press')) {
     return <MdOutlineFitnessCenter className="text-3xl text-white" />;
-  if (e.includes('sentadilla'))
+  }
+
+  if (e.includes('sentadilla')) {
     return <GiWeightLiftingUp className="text-3xl text-white" />;
-  if (e.includes('dominadas'))
+  }
+
+  if (e.includes('dominadas')) {
     return <GiMuscleUp className="text-3xl text-white" />;
+  }
+
   return <GiStrong className="text-3xl text-white" />;
 };
 
-const getColorClass = (ejercicio) => {
+/* Benjamin Orellana - 2026/04/11 - Gradientes por ejercicio para sostener la paleta Altos Roca */
+const getColorClass = (ejercicio = '') => {
   const e = ejercicio.toLowerCase();
-  if (e.includes('sentadilla'))
+
+  if (e.includes('sentadilla')) {
     return 'from-[#5a0912] via-[#b71c2b] to-[#ef3347]';
-  if (e.includes('press')) return 'from-[#3b0a12] via-[#8b1324] to-[#d11f2f]';
-  if (e.includes('peso muerto'))
+  }
+
+  if (e.includes('press')) {
+    return 'from-[#3b0a12] via-[#8b1324] to-[#d11f2f]';
+  }
+
+  if (e.includes('peso muerto')) {
     return 'from-[#5f1f08] via-[#a53a17] to-[#ef6b3b]';
+  }
+
   return 'from-[#420911] via-[#7b1120] to-[#c11c2f]';
 };
 
-const isPR = (rm) => rm.rm_estimada && rm.rm_estimada > 100;
-
-const tablasFuerza = {
-  sentadilla: { male: [60, 100, 130, 160], female: [40, 60, 80, 100] },
-  'press banca': { male: [50, 80, 110, 140], female: [20, 40, 60, 80] },
-  'peso muerto': { male: [70, 120, 160, 200], female: [50, 80, 100, 130] },
-  'remo con barra': { male: [40, 70, 100, 130], female: [20, 40, 60, 80] },
-  'press militar': { male: [30, 60, 80, 100], female: [15, 30, 50, 70] },
-  'dominadas lastradas': { male: [5, 15, 25, 40], female: [0, 5, 15, 25] }
+/* Benjamin Orellana - 2026/04/11 - Formateo seguro de números para métricas del módulo RM */
+const toNumberOrNull = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 };
 
-const calcularNivelFuerza = (ejercicio, rm, sexo) => {
-  if (!sexo || !rm) return 'Desconocido';
-  const key = ejercicio.toLowerCase();
-  const t = tablasFuerza[key]?.[sexo];
-  if (!t) return 'Sin referencia';
+/* Benjamin Orellana - 2026/04/11 - Formateo visual de kilos en cards y cabeceras */
+const formatKg = (value) => {
+  const n = toNumberOrNull(value);
+  if (n === null) return '—';
 
-  if (rm < t[0]) return 'Novato';
-  if (rm < t[1]) return 'Intermedio';
-  if (rm < t[2]) return 'Avanzado';
-  return 'Élite';
+  return `${n.toLocaleString('es-AR', {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  })} kg`;
 };
 
-const getColorPorNivel = (nivel) => {
-  switch (nivel) {
-    case 'Novato':
-      return 'bg-white/15 text-white border border-white/10';
-    case 'Intermedio':
-      return 'bg-amber-400/20 text-amber-100 border border-amber-300/20';
-    case 'Avanzado':
-      return 'bg-orange-400/20 text-orange-100 border border-orange-300/20';
-    case 'Élite':
+/* Benjamin Orellana - 2026/04/11 - Fecha más útil disponible por registro para ordenar y mostrar */
+const getRegistroDate = (registro) =>
+  registro?.fecha || registro?.created_at || registro?.updated_at || null;
+
+/* Benjamin Orellana - 2026/04/11 - Formateo seguro de fecha para tarjetas y resumen */
+const formatFecha = (fecha) => {
+  if (!fecha) return '—';
+
+  const d = new Date(fecha);
+  if (Number.isNaN(d.getTime())) return '—';
+
+  return d.toLocaleDateString('es-AR');
+};
+
+/* Benjamin Orellana - 2026/04/11 - Normaliza la tendencia enviada por backend para badges y resúmenes */
+const formatTendencia = (value) => {
+  if (!value) return '—';
+
+  switch (value) {
+    case 'ascendente':
+      return 'En alza';
+    case 'descendente':
+      return 'En baja';
+    case 'estable':
+      return 'Estable';
+    default:
+      return '—';
+  }
+};
+
+/* Benjamin Orellana - 2026/04/11 - Color visual por tendencia del ejercicio */
+const getTendenciaClass = (value) => {
+  switch (value) {
+    case 'ascendente':
+      return 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/20';
+    case 'descendente':
       return 'bg-red-500/20 text-red-100 border border-red-300/20';
+    case 'estable':
+      return 'bg-white/15 text-white border border-white/10';
     default:
       return 'bg-white/10 text-white/70 border border-white/10';
   }
 };
 
-const formatFecha = (fecha) => {
-  if (!fecha) return '—';
-  const d = new Date(fecha);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('es-AR');
+/* Benjamin Orellana - 2026/04/11 - Badge corto para confiabilidad del cálculo de RM */
+const formatConfiabilidad = (value) => {
+  switch (value) {
+    case 'alta':
+      return 'Alta';
+    case 'media':
+      return 'Media';
+    case 'baja':
+      return 'Baja';
+    case 'muy_baja':
+      return 'Muy baja';
+    default:
+      return '—';
+  }
 };
 
-export const RMCard = ({ ejercicio, registros, studentId }) => {
+/* Benjamin Orellana - 2026/04/11 - Determina si un registro coincide con la mejor marca del ejercicio */
+const isPRRegistro = (rm, mejorRegistro, resumen) => {
+  if (!rm) return false;
+
+  if (mejorRegistro?.id && rm.id === mejorRegistro.id) return true;
+
+  const mejorRm = toNumberOrNull(resumen?.mejor_rm);
+  const actualRm = toNumberOrNull(rm?.rm_estimada);
+
+  return mejorRm !== null && actualRm !== null && actualRm === mejorRm;
+};
+
+export const RMCard = ({
+  ejercicio,
+  registros,
+  studentId,
+  resumen = null,
+  mejorRegistro = null,
+  ultimoRegistro = null
+}) => {
   const [mostrarTodos, setMostrarTodos] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [historialActual, setHistorialActual] = useState([]);
   const [ejercicioActual, setEjercicioActual] = useState('');
-  const [sexo, setSexo] = useState(null);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
 
-  useEffect(() => {
-    async function fetchSexo() {
-      try {
-        const res1 = await fetch(`http://localhost:8080/students/${studentId}`);
-        const student = await res1.json();
-        const nombre = student?.nomyape?.split(' ')[0] || '';
-        const res2 = await fetch(
-          `https://api.genderize.io?name=${encodeURIComponent(nombre)}`
-        );
-        const data = await res2.json();
-        setSexo(data.gender);
-      } catch (error) {
-        console.error('No se pudo obtener el sexo estimado del alumno', error);
-        setSexo(null);
-      }
-    }
+  /* Benjamin Orellana - 2026/04/11 - Registros visibles priorizando el orden actual del backend */
+  const visibles = useMemo(
+    () => (mostrarTodos ? registros : registros.slice(0, 4)),
+    [mostrarTodos, registros]
+  );
 
-    fetchSexo();
-  }, [studentId]);
-
-  const visibles = mostrarTodos ? registros : registros.slice(0, 4);
-
+  /* Benjamin Orellana - 2026/04/11 - Mejor marca con prioridad al resumen del backend */
   const mejorMarca = useMemo(() => {
+    const fromResumen = toNumberOrNull(resumen?.mejor_rm);
+    if (fromResumen !== null) return fromResumen;
+
     const valores = registros
-      .map((r) => Number(r.rm_estimada || 0))
-      .filter((n) => Number.isFinite(n) && n > 0);
+      .map((r) => toNumberOrNull(r.rm_estimada))
+      .filter((n) => n !== null && n > 0);
 
     if (!valores.length) return null;
     return Math.max(...valores);
-  }, [registros]);
+  }, [registros, resumen]);
 
-  const ultimoRegistro = useMemo(() => {
+  /* Benjamin Orellana - 2026/04/11 - Último registro con prioridad al resumen/dashboard */
+  const ultimoRegistroReal = useMemo(() => {
+    if (ultimoRegistro) return ultimoRegistro;
     if (!registros.length) return null;
 
     const ordenados = [...registros].sort((a, b) => {
-      const fa = new Date(a.fecha || a.created_at || 0).getTime();
-      const fb = new Date(b.fecha || b.created_at || 0).getTime();
+      const fa = new Date(getRegistroDate(a) || 0).getTime();
+      const fb = new Date(getRegistroDate(b) || 0).getTime();
       return fb - fa;
     });
 
     return ordenados[0] || null;
-  }, [registros]);
+  }, [registros, ultimoRegistro]);
 
+  /* Benjamin Orellana - 2026/04/11 - Obtiene historial enriquecido del backend nuevo para el modal */
   const handleVerHistorial = async (ejercicioSeleccionado) => {
-    const res = await fetch(
-      `http://localhost:8080/rm-historial?student_id=${studentId}&ejercicio=${encodeURIComponent(
-        ejercicioSeleccionado
-      )}`
-    );
-    const data = await res.json();
-    setHistorialActual(data);
-    setEjercicioActual(ejercicioSeleccionado);
-    setModalOpen(true);
+    try {
+      setLoadingHistorial(true);
+
+      const res = await fetch(
+        `${BASE_URL}/student-rm/historial?student_id=${studentId}&ejercicio=${encodeURIComponent(
+          ejercicioSeleccionado
+        )}`
+      );
+
+      const data = await res.json();
+
+      const historial = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.historial)
+          ? data.historial
+          : [];
+
+      setHistorialActual(historial);
+      setEjercicioActual(ejercicioSeleccionado);
+      setModalOpen(true);
+    } catch (error) {
+      console.error('No se pudo obtener el historial del ejercicio', error);
+      setHistorialActual([]);
+      setEjercicioActual(ejercicioSeleccionado);
+      setModalOpen(true);
+    } finally {
+      setLoadingHistorial(false);
+    }
   };
 
   return (
@@ -162,20 +248,15 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
               {registros.length}
             </span>
           </h2>
-
-          <p className="mt-3 text-sm text-white/55">
-            Seguimiento agrupado por ejercicio para visualizar evolución, marcas
-            estimadas y acceso rápido al historial.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:min-w-[420px]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[420px]">
           <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/40">
               Mejor RM
             </p>
             <p className="mt-2 text-2xl font-black text-white">
-              {mejorMarca ? `${mejorMarca} kg` : '—'}
+              {formatKg(mejorMarca)}
             </p>
           </div>
 
@@ -184,24 +265,34 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
               Último registro
             </p>
             <p className="mt-2 text-sm font-semibold text-white">
-              {formatFecha(ultimoRegistro?.fecha)}
+              {formatFecha(getRegistroDate(ultimoRegistroReal))}
             </p>
           </div>
 
           <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/40">
-              Historial
+              Tendencia
             </p>
-            <p className="mt-2 text-sm font-semibold text-white">
-              {registros.length} intento(s)
-            </p>
+            <div className="mt-2 flex items-center gap-2">
+              {resumen?.tendencia === 'ascendente' ? (
+                <FiTrendingUp className="text-emerald-300" />
+              ) : resumen?.tendencia === 'descendente' ? (
+                <FiTrendingDown className="text-red-300" />
+              ) : (
+                <FiBarChart2 className="text-white/70" />
+              )}
+
+              <p className="text-sm font-semibold text-white">
+                {formatTendencia(resumen?.tendencia)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {visibles.map((rm) => {
-          const nivel = calcularNivelFuerza(rm.ejercicio, rm.rm_estimada, sexo);
+          const esPR = isPRRegistro(rm, mejorRegistro, resumen);
 
           return (
             <motion.div
@@ -217,9 +308,9 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(0,0,0,0.08)_100%)]" />
               <div className="absolute -right-6 top-[-18px] h-24 w-24 rounded-full bg-white/10 blur-2xl" />
 
-              {isPR(rm) && (
-                <span className="absolute top-3 right-3 rounded-full border border-emerald-300/20 bg-emerald-500/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow">
-                  Nuevo PR
+              {esPR && (
+                <span className="absolute right-3 top-3 rounded-full border border-emerald-300/20 bg-emerald-500/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow">
+                  PR
                 </span>
               )}
 
@@ -232,7 +323,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
 
                     <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/80">
                       <FiCalendar />
-                      {formatFecha(rm.fecha)}
+                      {formatFecha(getRegistroDate(rm))}
                     </div>
                   </div>
 
@@ -246,7 +337,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
                         Peso levantado
                       </p>
                       <p className="mt-1 text-lg font-bold text-white">
-                        {rm.peso_levantado} kg
+                        {formatKg(rm.peso_levantado)}
                       </p>
                     </div>
 
@@ -255,7 +346,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
                         Repeticiones
                       </p>
                       <p className="mt-1 text-lg font-bold text-white">
-                        {rm.repeticiones}
+                        {rm.repeticiones ?? '—'}
                       </p>
                     </div>
 
@@ -264,21 +355,22 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
                         RM estimado
                       </p>
                       <p className="mt-1 text-lg font-bold text-white">
-                        {rm.rm_estimada ? `${rm.rm_estimada} kg` : '—'}
+                        {formatKg(rm.rm_estimada)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-white/85">
-                      Nivel:
-                    </span>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getColorPorNivel(
-                        nivel
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getTendenciaClass(
+                        resumen?.tendencia
                       )}`}
                     >
-                      {nivel}
+                      {formatTendencia(resumen?.tendencia)}
+                    </span>
+
+                    <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white/85">
+                      Confianza {formatConfiabilidad(rm?.confiabilidad_rm)}
                     </span>
                   </div>
 
@@ -299,11 +391,15 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
                     onClick={() => handleVerHistorial(rm.ejercicio)}
                     className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
                   >
-                    Ver historial
+                    {loadingHistorial ? 'Cargando...' : 'Ver historial'}
                   </button>
 
                   <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/10 text-white/80">
-                    <FiTrendingUp />
+                    {resumen?.tendencia === 'descendente' ? (
+                      <FiTrendingDown />
+                    ) : (
+                      <FiTrendingUp />
+                    )}
                   </span>
                 </div>
               </div>
@@ -313,7 +409,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
       </div>
 
       {registros.length > 4 && (
-        <div className="text-center mt-8">
+        <div className="mt-8 text-center">
           <button
             onClick={() => setMostrarTodos(!mostrarTodos)}
             className="inline-flex items-center justify-center rounded-full border border-[#ef3347]/20 bg-[linear-gradient(135deg,#5a0912_0%,#d11f2f_52%,#ef3347_100%)] px-5 py-3 text-sm font-semibold text-white transition hover:scale-[1.01]"
