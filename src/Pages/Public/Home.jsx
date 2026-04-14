@@ -5,13 +5,22 @@ import HeroSection from "../../components/HeroSection";
 import FeaturesSection from "../../components/FeaturesSection";
 import EntranamientosAdaptan from "../../components/EntranamientosAdaptan";
 import Banner from "../../components/Banner";
-
+/* Benjamin Orellana - 2026/04/14 - Se incorpora la galería pública de comunidad en la home. */
+import GaleriaComunidadSection from '../../components/GaleriaComunidadSection';
 const Home = () => {
   return (
     <div className="bg-gray-900 text-white">
       <HeroSection />
       <Banner />
       <FeaturesSection />
+
+      <Banner
+        altura="h-[270px] md:h-[320px] lg:h-[350px]"
+        texto_1="text-2xl md:text-3xl lg:text-4xl"
+        texto_2="text-2xl md:text-2xl lg:text-3xl"
+      />
+
+      <GaleriaComunidadSection></GaleriaComunidadSection>
 
       <Banner
         altura="h-[270px] md:h-[320px] lg:h-[350px]"

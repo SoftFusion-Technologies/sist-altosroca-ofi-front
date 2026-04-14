@@ -17,8 +17,10 @@ import {
   FaClipboardList,
   FaBuilding,
   FaBullhorn,
-  FaTv
+  FaTv,
+  FaImages
 } from 'react-icons/fa';
+
 /*
  * Programador: Benjamin Orellana
  * Fecha Actualización: 02 / 04 / 2026
@@ -204,6 +206,17 @@ const AdminPage = () => {
         icon: FaTv,
         accent: 'from-orange-500 via-red-500 to-red-300',
         visible: esAdmin
+      },
+      /* Benjamin Orellana - 2026/04/14 - Acceso staff al módulo de moderación de galería de alumnos. */
+      {
+        key: 'galeria',
+        to: '/dashboard/galeria',
+        title: 'Galería',
+        description:
+          'Moderación de fotos y videos subidos por alumnos para aprobar, rechazar o archivar.',
+        icon: FaImages,
+        accent: 'from-red-800 via-red-500 to-pink-300',
+        visible: esAdmin || esInstructor
       }
     ].filter((item) => item.visible);
   }, [role, userId, userLevel]);

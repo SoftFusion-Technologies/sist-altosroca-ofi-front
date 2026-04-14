@@ -28,6 +28,8 @@ import { motion } from 'framer-motion';
 import ModalCrearRutina from './ModalCrearRutina';
 import RutinaPorBloques from './RutinaPorBloques';
 import RutinaVigentePorBloques from './RutinaVigentePorBloques';
+/* Benjamin Orellana - 2026/04/14 - Se incorpora el gestor de galería del alumno dentro del perfil. */
+import StudentGalleryManager from '../../Staff/Students/Gallery/StudentGalleryManager';
 
 function ActionButton({ onClick, icon: Icon, label, className = '' }) {
   return (
@@ -394,6 +396,7 @@ function PerfilAlumno() {
           ESTADÍSTICAS
         </h2>
         <EstadisticasRutinas studentId={id} /> */}
+        <StudentGalleryManager studentId={id} userLevel={userLevel} />
       </div>
 
       {/* Modal condicional */}

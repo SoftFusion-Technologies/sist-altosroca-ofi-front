@@ -33,6 +33,7 @@ import AlumnosPendientesGet from './Pages/AlumnosPendientesGet.jsx';
 import AlianzasOportunidadesGet from './Pages/Staff/Alianzas/AlianzasOportunidadesGet.jsx';
 import AlianzasEmpresasGet from './Pages/Staff/Alianzas/AlianzasEmpresasGet.jsx';
 import AlianzasEspaciosGet from './Pages/Staff/Alianzas/AlianzasEspaciosGet.jsx';
+import GaleriaAdminPage from './Pages/Galeria/GaleriaAdminPage.jsx';
 
 const AdminPage = lazy(() => import('./Pages/staff/AdminPage'));
 
@@ -240,6 +241,15 @@ export default function App() {
             <ProtectedRoute>
               {' '}
               <AlianzasEspaciosGet />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Route
+          path="/dashboard/galeria"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <GaleriaAdminPage />{' '}
             </ProtectedRoute>
           }
         />{' '}
