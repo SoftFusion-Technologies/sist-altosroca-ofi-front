@@ -1,21 +1,24 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import NavbarStaff from './NavbarStaff.jsx';
+import NavbarStaff from '../staff/NavbarStaff.jsx';
 import '../../Styles/staff/dashboard.css';
 import '../../Styles/staff/background.css';
 import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import ParticlesBackground from '../../components/ParticlesBackground.jsx';
 import BadgeTestClasses from '../MetodosGets/Leads/BadgeTestClasses.jsx';
+// Benjamin Orellana - 2026/04/14 - Íconos para accesos del módulo Alianzas.
 import {
   FaArrowRight,
   FaChartBar,
   FaDumbbell,
   FaRunning,
   FaUserGraduate,
-  FaClipboardList
+  FaClipboardList,
+  FaBuilding,
+  FaBullhorn,
+  FaTv
 } from 'react-icons/fa';
-
 /*
  * Programador: Benjamin Orellana
  * Fecha Actualización: 02 / 04 / 2026
@@ -169,6 +172,37 @@ const AdminPage = () => {
           'Vista general de las métricas y rendimiento del profesor.',
         icon: FaChartBar,
         accent: 'from-red-800 via-red-500 to-amber-300',
+        visible: esAdmin
+      },
+      // Benjamin Orellana - 2026/04/14 - Accesos del módulo Alianzas dentro del dashboard staff.
+      {
+        key: 'alianzas_oportunidades',
+        to: '/dashboard/alianzas/oportunidades',
+        title: 'Alianzas',
+        description:
+          'Panel central de oportunidades comerciales, convenios y publicidad.',
+        icon: FaBullhorn,
+        accent: 'from-red-800 via-red-500 to-amber-300',
+        visible: esAdmin || esVendedor
+      },
+      {
+        key: 'alianzas_empresas',
+        to: '/dashboard/alianzas/empresas',
+        title: 'Empresas',
+        description:
+          'Gestión de empresas, marcas y emprendimientos vinculados al gimnasio.',
+        icon: FaBuilding,
+        accent: 'from-zinc-300 via-red-400 to-red-600',
+        visible: esAdmin || esVendedor
+      },
+      {
+        key: 'alianzas_espacios',
+        to: '/dashboard/alianzas/espacios',
+        title: 'Espacios',
+        description:
+          'Administración del catálogo de espacios comerciales disponibles.',
+        icon: FaTv,
+        accent: 'from-orange-500 via-red-500 to-red-300',
         visible: esAdmin
       }
     ].filter((item) => item.visible);

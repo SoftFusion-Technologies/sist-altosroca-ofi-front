@@ -518,14 +518,14 @@ const EntranamientosAdaptan = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <NavLink to="/turnos" className="inline-flex">
+                      {/* <NavLink to="/turnos" className="inline-flex">
                         <button className="btn-logo btn-logo--md w-full sm:w-auto min-w-[200px]">
                           <span className="btn-logo__text inline-flex items-center justify-center gap-2">
                             Quiero empezar
                             <FaArrowRight className="text-sm" />
                           </span>
                         </button>
-                      </NavLink>
+                      </NavLink> */}
 
                       <NavLink
                         to="/espacios"

@@ -47,14 +47,14 @@ const Footer = () => {
   const navigationLinks = [
     { name: 'Inicio', path: '/' },
     { name: 'Horarios', path: '/horarios' },
-    { name: 'Turnos', path: '/turnos' },
+    // { name: 'Turnos', path: '/turnos' },
     { name: 'Socios', path: '/socios' },
     { name: 'Espacios', path: '/espacios' },
     { name: 'Suplementos', path: '/suplementos' }
   ];
 
   const quickLinks = [
-    { name: 'Reservar turno', path: '/turnos' },
+    // { name: 'Reservar turno', path: '/turnos' },
     { name: 'Ver horarios', path: '/horarios' },
     { name: 'Conocer espacios', path: '/espacios' }
   ];

@@ -1,10 +1,11 @@
-import Home from "../Pages/Public/Home.jsx";
-import ClasePrueba from "../Pages/Public/ClasePrueba.jsx";
-import Horarios from "../Pages/Public/Horarios.jsx";
-import Socios from "../Pages/Public/Socios.jsx";
-import Espacios from "../Pages/Public/Espacios.jsx";
-import Suplementos from "../Pages/Public/Suplementos.jsx";
-import TurnosPage from "../Pages/TurnosPage.jsx";
+import Home from '../Pages/Public/Home.jsx';
+import ClasePrueba from '../Pages/Public/ClasePrueba.jsx';
+import Horarios from '../Pages/Public/Horarios.jsx';
+import Socios from '../Pages/Public/Socios.jsx';
+import Espacios from '../Pages/Public/Espacios.jsx';
+import Suplementos from '../Pages/Public/Suplementos.jsx';
+import TurnosPage from '../Pages/TurnosPage.jsx';
+import AlianzasPublicPage from '../Pages/Public/AlianzasPublicPage.jsx';
 
 const routes = [
   {
@@ -37,19 +38,18 @@ const routes = [
     name: 'Espacios',
     showInNav: true
   },
+  // {
+  //   path: '/suplementos',
+  //   element: <Suplementos />,
+  //   name: 'Suplementos',
+  //   showInNav: true
+  // },
   {
-    path: '/suplementos',
-    element: <Suplementos />,
-    name: 'Suplementos',
-    showInNav: true
-  },
-  {
-    path: '/turnos',
-    element: <TurnosPage />,
-    name: 'Turnos',
+    path: '/asociarme',
+    element: <AlianzasPublicPage />,
+    name: 'Publicidad y convenios',
     showInNav: true
   }
-
 ];
 
 export default routes;

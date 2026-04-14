@@ -291,12 +291,12 @@ const FeaturesSection = () => {
                     </button>
                   </NavLink>
 
-                  <NavLink
+                  {/* <NavLink
                     to="/turnos"
                     className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-white/88 backdrop-blur-md transition-all duration-300 hover:border-red-500/28 hover:bg-red-500/10 hover:text-white"
                   >
                     Reservar turno
-                  </NavLink>
+                  </NavLink> */}
                 </div>
               </div>
             </motion.article>

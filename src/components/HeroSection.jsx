@@ -410,10 +410,10 @@ const HeroSection = () => {
               <span>Av. Perú y Sarmiento · Tafí Viejo</span>
             </div>
 
-            <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
+            {/* <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
               <FaWhatsapp className="text-red-400 shrink-0" />
               <span>Turnos y consultas online</span>
-            </div>
+            </div> */}
           </motion.div>
 
           {/* Cards mobile / tablet */}

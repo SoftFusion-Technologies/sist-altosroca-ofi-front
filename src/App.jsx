@@ -30,6 +30,10 @@ import LogsGlobalAlumno from './Pages/MetodosGets/AlumnoPerfil/LogsGlobalAlumno.
 import RutinasExplorer from './Pages/MetodosGets/RutinasExplorer.jsx';
 import EstadisticasIns from './Pages/MetodosGets/EstadisticasIns.jsx';
 import AlumnosPendientesGet from './Pages/AlumnosPendientesGet.jsx';
+import AlianzasOportunidadesGet from './Pages/Staff/Alianzas/AlianzasOportunidadesGet.jsx';
+import AlianzasEmpresasGet from './Pages/Staff/Alianzas/AlianzasEmpresasGet.jsx';
+import AlianzasEspaciosGet from './Pages/Staff/Alianzas/AlianzasEspaciosGet.jsx';
+
 const AdminPage = lazy(() => import('./Pages/staff/AdminPage'));
 
 export default function App() {
@@ -209,6 +213,33 @@ export default function App() {
             <ProtectedRoute>
               {' '}
               <EstadisticasIns />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Route
+          path="/dashboard/alianzas/oportunidades"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <AlianzasOportunidadesGet />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Route
+          path="/dashboard/alianzas/empresas"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <AlianzasEmpresasGet />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Route
+          path="/dashboard/alianzas/espacios"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <AlianzasEspaciosGet />{' '}
             </ProtectedRoute>
           }
         />{' '}
