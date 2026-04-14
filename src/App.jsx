@@ -29,6 +29,7 @@ import RMListWrapper from './Pages/MetodosGets/RM/RMListWrapper.jsx';
 import LogsGlobalAlumno from './Pages/MetodosGets/AlumnoPerfil/LogsGlobalAlumno.jsx';
 import RutinasExplorer from './Pages/MetodosGets/RutinasExplorer.jsx';
 import EstadisticasIns from './Pages/MetodosGets/EstadisticasIns.jsx';
+import AlumnosPendientesGet from './Pages/AlumnosPendientesGet.jsx';
 const AdminPage = lazy(() => import('./Pages/staff/AdminPage'));
 
 export default function App() {
@@ -147,6 +148,15 @@ export default function App() {
             <ProtectedRoute>
               {' '}
               <PerfilAlumno />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Route
+          path="/dashboard/pendientes"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <AlumnosPendientesGet />{' '}
             </ProtectedRoute>
           }
         />{' '}

@@ -6,6 +6,11 @@ import Logo from '../img/Logo.webp';
 import ParticlesBackground from '../components/ParticlesBackground';
 import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
 import LeadCaptureModal from '../components/LeadCaptureModal';
+// Benjamin Orellana - 2026/04/13 - Import del modal de auto registro de alumnos.
+import StudentSelfRegisterModal from '../components/StudentSelfRegisterModal';
+
+
+
 const fallbackNavItems = [
   { label: 'INICIO', path: '/inicio' },
   { label: 'HORARIOS', path: '/horarios' },
@@ -19,7 +24,14 @@ const Navbar = () => {
   const [nav, setNav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [leadModalOpen, setLeadModalOpen] = useState(false);
+  // Benjamin Orellana - 2026/04/13 - Estado para abrir el modal de registro rápido de alumnos.
+  const [studentRegisterModalOpen, setStudentRegisterModalOpen] =
+    useState(false);
 
+  const handleOpenStudentRegisterModal = () => {
+    setStudentRegisterModalOpen(true);
+    setNav(false);
+  };
   // Benjamin Orellana - 2026-04-02 - Se agrega apertura del modal público de captación de leads desde el CTA principal del navbar
   const handleOpenLeadModal = () => {
     setLeadModalOpen(true);
@@ -201,15 +213,30 @@ const Navbar = () => {
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenLeadModal}
-            className={`btn-logo ${scrolled ? 'btn-logo--sm' : 'btn-logo--md'}`}
-          >
-            <span className="btn-logo__text">
-              {scrolled ? 'comenzar' : 'Quiero comenzar'}
-            </span>
-          </button>
+          {/* Benjamin Orellana - 2026/04/13 - CTA secundario para auto registro de alumnos desde navbar desktop. */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleOpenStudentRegisterModal}
+              className={`inline-flex items-center justify-center rounded-full border px-5 font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${
+                scrolled
+                  ? 'h-10 text-[11px] border-white/15 bg-white/8 text-white hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200'
+                  : 'h-12 text-[12px] border-white/15 bg-white/10 text-white hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-200'
+              }`}
+            >
+              {scrolled ? 'Registro' : 'Registrarme'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenLeadModal}
+              className={`btn-logo ${scrolled ? 'btn-logo--sm' : 'btn-logo--md'}`}
+            >
+              <span className="btn-logo__text">
+                {scrolled ? 'comenzar' : 'Quiero comenzar'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Menú mobile */}
@@ -301,7 +328,16 @@ const Navbar = () => {
               ))}
             </div>
 
-            <div className="flex justify-center">
+            {/* Benjamin Orellana - 2026/04/13 - CTA secundario para auto registro de alumnos desde menú mobile. */}
+            <div className="flex flex-col items-center gap-3 px-6">
+              <button
+                type="button"
+                onClick={handleOpenStudentRegisterModal}
+                className="w-full max-w-sm rounded-full border border-white/15 bg-white/8 px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-all duration-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200"
+              >
+                Registrarme
+              </button>
+
               <button
                 type="button"
                 onClick={handleOpenLeadModal}
@@ -317,8 +353,13 @@ const Navbar = () => {
         open={leadModalOpen}
         onClose={() => setLeadModalOpen(false)}
       />
+      {/* Benjamin Orellana - 2026/04/13 - Modal de auto registro de alumnos. */}
+      <StudentSelfRegisterModal
+        open={studentRegisterModalOpen}
+        onClose={() => setStudentRegisterModalOpen(false)}
+      />
     </nav>
   );
-};;
+};
 
 export default Navbar;
