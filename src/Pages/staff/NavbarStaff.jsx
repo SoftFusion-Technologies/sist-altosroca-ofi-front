@@ -41,7 +41,7 @@ const linksDef = [
     href: 'dashboard/administracion-colores',
     title: 'Adm. Colores',
     roles: ['admin', 'instructor']
-  },
+  }
   // {
   //   id: 5,
   //   href: 'dashboard/logs',
@@ -116,6 +116,15 @@ const NavbarStaff = () => {
     navigate('/inicio');
   };
 
+  /* Benjamin Orellana - 2026/04/14 - Se define una ruta segura del logo según el rol autenticado para evitar redirecciones inválidas al dashboard. */
+  const rolesConAccesoDashboard = ['admin', 'instructor', 'vendedor'];
+
+  const brandRedirect = rolesConAccesoDashboard.includes(
+    String(userLevel || '').toLowerCase()
+  )
+    ? '/dashboard'
+    : '/';
+
   return (
     <header className="sticky top-0 z-50">
       <nav
@@ -139,7 +148,7 @@ const NavbarStaff = () => {
         >
           {/* Marca */}
           <Link
-            to="/dashboard"
+            to={brandRedirect}
             className="flex items-center gap-3 shrink-0 focus:outline-none"
           >
             <img
