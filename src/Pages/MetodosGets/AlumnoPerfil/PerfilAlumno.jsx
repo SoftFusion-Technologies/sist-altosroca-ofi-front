@@ -90,33 +90,27 @@ function PerfilAlumno() {
     fetchAlumno();
   }, [id]);
 
-  // Fetch usuarios (instructores) una vez
+  // Fetch usuarios una vez
   useEffect(() => {
     const obtenerUsuarios = async () => {
       try {
         const res = await axios.get('http://localhost:8080/users');
-        const instructores = res.data.filter(
-          (user) => user.rol === 'instructor'
-        );
-        setUsuarios(instructores);
+
+        /* Benjamin Orellana - 2026/04/20 - Se elimina el filtro por rol para disponer de todos los usuarios devueltos por el endpoint. */
+        setUsuarios(res.data);
       } catch (error) {
-        console.log('Error al obtener profesores:', error);
+        console.log('Error al obtener usuarios:', error);
       }
     };
+
     obtenerUsuarios();
   }, []); // solo se ejecuta una vez
 
   const obtenerNombreProfesor = (userId) => {
     const profesor = usuarios.find((u) => u.id === userId);
-    return profesor ? profesor.nombre : 'Sin asignar';
+    return profesor ? profesor.name : 'No disponible';
   };
-
-  const obtenerIdProfesor = (userId) => {
-    const profesor = usuarios.find((u) => u.id === userId);
-    return profesor ? profesor.id : null; // null si no lo encuentra
-    console.log(userId);
-  };
-
+  
   const capitalizeFirst = (str) =>
     str && str.length > 0
       ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()

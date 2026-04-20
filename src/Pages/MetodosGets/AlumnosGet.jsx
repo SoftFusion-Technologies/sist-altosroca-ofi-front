@@ -159,10 +159,11 @@ const AlumnosGet = () => {
   const obtenerUsuarios = async () => {
     try {
       const res = await axios.get('http://localhost:8080/users');
-      const instructores = res.data.filter((user) => user.rol === 'instructor');
-      setUsuarios(instructores);
+
+      /* Benjamin Orellana - 2026/04/20 - Se elimina el filtro por rol para cargar todos los usuarios devueltos por el endpoint. */
+      setUsuarios(res.data);
     } catch (error) {
-      console.log('Error al obtener profesores:', error);
+      console.log('Error al obtener usuarios:', error);
     }
   };
 
@@ -170,7 +171,7 @@ const AlumnosGet = () => {
     const profesor = usuarios.find(
       (u) => String(u.id) === String(userIdAlumno)
     );
-    return profesor ? profesor.nombre || profesor.name : 'Sin asignar';
+    return profesor ? profesor.name : 'Sin asignar';
   };
 
   const handleEliminarAlumno = async (id) => {

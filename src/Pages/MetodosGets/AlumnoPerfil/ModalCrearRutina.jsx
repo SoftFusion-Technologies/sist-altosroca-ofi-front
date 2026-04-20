@@ -16,6 +16,7 @@ import SeriesSelector from '../../Components/SeriesSelector';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tz from 'dayjs/plugin/timezone';
+import Swal from 'sweetalert2';
 dayjs.extend(utc);
 dayjs.extend(tz);
 
@@ -202,7 +203,20 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
     });
   };
 
-  const eliminarEjercicio = (bloqueIdx, ejIdx) => {
+  const eliminarEjercicio = async (bloqueIdx, ejIdx) => {
+    /* Benjamin Orellana - 2026/04/20 - Se agrega confirmación visual con SweetAlert antes de eliminar un ejercicio del bloque. */
+    const result = await Swal.fire({
+      title: 'Eliminar ejercicio',
+      text: 'Esta acción quitará el ejercicio del bloque actual.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
     setBloques((prev) => {
       const nuevos = [...prev];
       const ejerciciosActualizados = nuevos[bloqueIdx].ejercicios.filter(
@@ -212,11 +226,25 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
       nuevos[bloqueIdx].ejercicios = ejerciciosActualizados;
       return nuevos;
     });
+
+    /* Benjamin Orellana - 2026/04/20 - Se informa al usuario que el ejercicio fue removido correctamente del bloque. */
+    await Swal.fire({
+      title: 'Ejercicio eliminado',
+      text: 'El ejercicio fue removido correctamente.',
+      icon: 'success',
+      confirmButtonText: 'Aceptar'
+    });
   };
 
   const handleCrear = async () => {
     if (!nombre || !fecha || !desde || !bloques.length) {
-      alert('❌ Por favor completa todos los campos requeridos.');
+      /* Benjamin Orellana - 2026/04/20 - Se reemplaza el alert de validación por SweetAlert para una UX más consistente. */
+      await Swal.fire({
+        title: 'Datos incompletos',
+        text: 'Por favor completa todos los campos requeridos.',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
       return;
     }
 
@@ -275,16 +303,37 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
       });
 
       const data = await res.json();
+
       if (res.ok) {
-        alert('✅ Rutina creada correctamente');
+        /* Benjamin Orellana - 2026/04/20 - Se reemplaza el alert de éxito por SweetAlert para mantener una experiencia visual unificada. */
+        await Swal.fire({
+          title: 'Rutina creada',
+          text: 'La rutina se creó correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        });
+
         onRutinaCreada?.();
         onClose();
       } else {
-        alert(`❌ Error: ${data.mensajeError || 'Algo salió mal'}`);
+        /* Benjamin Orellana - 2026/04/20 - Se reemplaza el alert de error de backend por SweetAlert para mostrar mensajes más claros. */
+        await Swal.fire({
+          title: 'Error al crear la rutina',
+          text: data.mensajeError || 'Algo salió mal.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        });
       }
     } catch (error) {
       console.error('Error al crear rutina:', error);
-      alert('❌ Error de red al crear rutina');
+
+      /* Benjamin Orellana - 2026/04/20 - Se reemplaza el alert de error de red por SweetAlert para un manejo visual consistente. */
+      await Swal.fire({
+        title: 'Error de red',
+        text: 'Ocurrió un problema al intentar crear la rutina.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     }
   };
 
@@ -332,12 +381,8 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
                   <h2 className="text-3xl titulo font-black uppercase tracking-[0.04em] text-white sm:text-4xl">
                     Crear rutina
                   </h2>
-                  <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-                    Organizá bloques, ejercicios y series en un formato más
-                    claro, visual y cómodo para el trabajo diario del staff.
-                  </p>
                 </div>
-
+{/* 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">
@@ -368,7 +413,7 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
                       ID #{studentId}
                     </p>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -468,15 +513,25 @@ const ModalCrearRutina = ({ studentId, userId, onClose, onRutinaCreada }) => {
                         </div>
 
                         <div>
-                          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.20em] text-slate-300">
-                            <FaLayerGroup />
-                            Bloque de trabajo
+                          <div className="space-y-2">
+                            <label className="block text-[11px] font-bold uppercase tracking-[0.20em] text-slate-500">
+                              Nombre del bloque
+                            </label>
+
+                            <input
+                              type="text"
+                              value={bloque.nombre}
+                              onChange={(e) =>
+                                handleBloqueChange(
+                                  bloqueIdx,
+                                  'nombre',
+                                  e.target.value
+                                )
+                              }
+                              placeholder={`Bloque ${bloqueIdx + 1}`}
+                              className="h-[50px] w-full min-w-[220px] rounded-2xl border border-white/10 bg-[#101010] px-4 text-lg font-black uppercase tracking-[0.04em] text-white outline-none transition placeholder:text-slate-600 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/20"
+                            />
                           </div>
-
-                          <h3 className="text-2xl font-black uppercase tracking-[0.04em] text-white">
-                            {bloque.nombre}
-                          </h3>
-
                           <p className="mt-1 text-sm text-slate-400">
                             {bloque.ejercicios?.length || 0} ejercicio(s)
                             cargado(s)

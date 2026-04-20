@@ -328,12 +328,11 @@ const EstadisticasIns = () => {
                     style={fontBody}
                   >
                     Visualizá el rendimiento mensual por profesor en alumnos,
-                    rutinas, ayudas resueltas y feedbacks desde una interfaz más
-                    clara y alineada con la identidad premium del sistema.
+                    rutinas y feedbacks.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                {/* <div className="flex flex-col gap-3 sm:flex-row">
                   <button
                     className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-white/82 transition hover:bg-white/[0.08]"
                     onClick={handlePreviousMonth}
@@ -351,7 +350,7 @@ const EstadisticasIns = () => {
                     Mes siguiente
                     <FaArrowRight />
                   </button>
-                </div>
+                </div> */}
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -434,12 +433,12 @@ const EstadisticasIns = () => {
                   field="total_rutinas"
                 />
 
-                <StatsSection
+                {/* <StatsSection
                   icon={<FaLifeRing />}
                   title="Ayudas Resueltas por Profesor"
                   data={ayudasResueltasPorProfesor}
                   field="total_ayudas"
-                />
+                /> */}
 
                 <StatsSection
                   icon={<FaCommentDots />}
